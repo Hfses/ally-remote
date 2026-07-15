@@ -1,0 +1,69 @@
+name: Ally Remote — gerar EXE (Windows)
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - "ally-remote/**"
+      - ".github/workflows/ally-remote.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: ally-remote
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@v4
+
+      - name: Instalar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependências
+        run: pip install -r requirements.txt pyinstaller pillow
+
+      - name: Gerar ícone .ico
+        run: python -c "from PIL import Image; Image.open('static/icon-512.png').save('icon.ico', sizes=[(256,256),(128,128),(64,64),(48,48),(32,32),(16,16)])"
+
+      - name: Compilar AllyRemote.exe
+        run: >
+          pyinstaller --onefile --name AllyRemote --icon icon.ico --uac-admin
+          --add-data "static;static"
+          --collect-all uvicorn
+          --hidden-import hid
+          --collect-all pynput
+          --collect-all mss
+          --collect-all PIL
+          server.py
+
+      - name: Verificar resultado
+        run: dir dist
+
+      - name: Guardar artefato (backup)
+        uses: actions/upload-artifact@v4
+        with:
+          name: AllyRemote-exe
+          path: ally-remote/dist/AllyRemote.exe
+
+      - name: Publicar na Release "allyremote-latest"
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: allyremote-latest
+          name: "Ally Remote — última versão (build automático)"
+          body: |
+            Download: baixe o **AllyRemote.exe** abaixo, copie para o ROG Ally e execute.
+
+            - O Windows/SmartScreen pode avisar sobre "editor desconhecido" — clique
+              em *Mais informações → Executar assim mesmo* (o exe é gerado por este
+              próprio repositório, pelo GitHub Actions).
+            - O programa pede Administrador automaticamente (necessário para RAM,
+              modo de desempenho e firewall).
+            - Guia completo de uso: pasta `ally-remote/README.md` do repositório.
+          files: ally-remote/dist/AllyRemote.exe

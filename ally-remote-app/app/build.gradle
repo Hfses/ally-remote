@@ -1,0 +1,49 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    namespace 'com.allyremote.app'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.allyremote.app"
+        minSdk 24
+        targetSdk 34
+        versionCode 3
+        versionName "1.2"
+    }
+
+    // Chave fixa: assim toda atualização instala por cima da anterior
+    // (sem chave fixa, cada build usa uma chave diferente e o Android bloqueia).
+    signingConfigs {
+        allyremote {
+            storeFile file('allyremote.keystore')
+            storePassword 'allyremote'
+            keyAlias 'allyremote'
+            keyPassword 'allyremote'
+        }
+    }
+
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.allyremote
+        }
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.allyremote
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+}
+
+dependencies {
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1'
+}
