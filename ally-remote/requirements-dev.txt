@@ -1,0 +1,3 @@
+# Dependências de desenvolvimento/teste (etapa "testes" do CI, antes do build)
+pytest>=8.0
+httpx>=0.27
