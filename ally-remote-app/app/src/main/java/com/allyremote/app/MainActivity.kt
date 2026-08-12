@@ -31,6 +31,9 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.net.DatagramPacket
+import java.net.DatagramSocket
+import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.Socket
 
@@ -260,37 +263,83 @@ class MainActivity : Activity() {
         scanBtn.alpha = if (busy) 0.5f else 1f
     }
 
-    /** Varre a sub-rede Wi-Fi atrás da porta 8765 aberta (o servidor no Ally). */
+    /**
+     * Procura o Ally na rede: primeiro por UDP broadcast (FASE 1 — rápido e
+     * identifica o servidor), com a varredura TCP 1–254 como fallback.
+     */
     private fun scan() {
         scope.launch {
             setBusy(true)
             status.text = "Procurando o Ally na rede Wi-Fi…"
-            val prefix = subnetPrefix()
-            if (prefix == null) {
-                status.text = "Não detectei o Wi-Fi. Digite o IP manualmente."
-                setBusy(false); return@launch
-            }
-            val found = withContext(Dispatchers.IO) {
-                coroutineScope {
-                    (1..254).map { i ->
-                        async {
-                            val host = "$prefix.$i"
-                            try {
-                                Socket().use { s -> s.connect(InetSocketAddress(host, PORT), 400) }
-                                host
-                            } catch (e: Exception) { null }
-                        }
-                    }.awaitAll().filterNotNull().firstOrNull()
-                }
-            }
+            val found = withContext(Dispatchers.IO) { udpProbe() ?: tcpScan() }
             setBusy(false)
             if (found != null) {
                 ipEdit.setText(found)
                 status.text = "Ally encontrado em $found ✓"
                 connect(found)
+            } else if (subnetPrefix() == null) {
+                status.text = "Não detectei o Wi-Fi. Digite o IP manualmente."
             } else {
                 status.text = "Nenhum Ally encontrado.\nO AllyRemote.exe está aberto no Ally? Celular no mesmo Wi-Fi?"
             }
+        }
+    }
+
+    /**
+     * Descoberta UDP (FASE 1): envia "ALLYREMOTE_PROBE" para o broadcast da
+     * rede e espera a resposta JSON do servidor (nome/modelo/porta). Devolve
+     * o IP de quem respondeu, ou null se ninguém respondeu em ~1,5 s.
+     */
+    private fun udpProbe(): String? {
+        return try {
+            val socket = DatagramSocket()
+            socket.broadcast = true
+            socket.soTimeout = 1200
+            val probe = "ALLYREMOTE_PROBE".toByteArray(Charsets.UTF_8)
+            val target = InetAddress.getByName("255.255.255.255")
+            socket.send(DatagramPacket(probe, probe.size, target, PORT))
+            val buf = ByteArray(2048)
+            val deadline = System.currentTimeMillis() + 1500
+            var found: String? = null
+            while (System.currentTimeMillis() < deadline) {
+                val p = DatagramPacket(buf, buf.size)
+                try {
+                    socket.receive(p)
+                } catch (e: java.net.SocketTimeoutException) {
+                    break
+                }
+                val host = p.address?.hostAddress ?: continue
+                if (host == "0.0.0.0" || host == "255.255.255.255") continue
+                val json = String(p.data, 0, p.length, Charsets.UTF_8)
+                try {
+                    val o = org.json.JSONObject(json)
+                    if (o.optString("name") == "Ally Remote") { found = host; break }
+                } catch (e: Exception) { /* resposta não-JSON: ignora */ }
+            }
+            socket.close()
+            found
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    /** Fallback: varre a sub-rede Wi-Fi atrás da porta 8765 aberta. */
+    private fun tcpScan(): String? {
+        val prefix = subnetPrefix() ?: return null
+        return try {
+            coroutineScope {
+                (1..254).map { i ->
+                    async {
+                        val host = "$prefix.$i"
+                        try {
+                            Socket().use { s -> s.connect(InetSocketAddress(host, PORT), 400) }
+                            host
+                        } catch (e: Exception) { null }
+                    }
+                }.awaitAll().filterNotNull().firstOrNull()
+            }
+        } catch (e: Exception) {
+            null
         }
     }
 

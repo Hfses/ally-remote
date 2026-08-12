@@ -175,6 +175,9 @@ rede/roteador**.
 - ✅ Servidor, protocolo WebSocket e interface foram testados de ponta a
   ponta em **modo mock** (fora do Windows): conexão, PIN, mouse/teclado/
   RAM/modo/LED/energia chegam corretos ao servidor e as respostas voltam à UI.
+- ✅ Suíte automatizada **pytest** (`tests/`, roda no CI antes do build):
+  todos os comandos do protocolo, autenticação por PIN, /stream MJPEG,
+  telemetria push e descoberta UDP.
 - ❌ **Depende do seu hardware** (valide com o checklist): injeção real de
   mouse/teclado (pynput), liberação de RAM, chamadas ATKACPI e pacotes HID
   do LED. As chamadas seguem exatamente o que G-Helper/Handheld Companion e
@@ -199,23 +202,39 @@ cd ally-remote
 pip install -r requirements.txt
 python server.py
 
+:: rodar a suíte de testes (mock, funciona no Linux/Windows sem hardware):
+pip install -r requirements-dev.txt
+pytest tests -q
+
 :: gerar o AllyRemote.exe localmente:
 build.bat
 ```
 
 Fora do Windows o servidor roda em **modo mock** (imprime os comandos em vez
-de executá-los) — útil para mexer na interface.
+de executá-los) — útil para mexer na interface. O CI roda `pytest` antes de
+gerar o exe/apk: se um teste falhar, a release não é publicada.
 
 ## Estrutura do código
 
 ```
 ally-remote/
-├── server.py        # servidor FastAPI + WebSocket (roda no Ally)
-├── ally_acpi.py     # firmware ASUS via driver ATKACPI (modo/fan)
-├── ally_led.py      # LEDs dos analógicos via HID (protocolo 0x5D)
-├── ram.py           # EmptyWorkingSet + purge da standby list
-├── power.py         # bateria + suspender/desligar/reiniciar
-├── static/          # interface do celular (PWA)
-├── build.bat        # compilar o exe localmente
+├── server.py                # ponto de entrada (python server.py / PyInstaller)
+├── server/                  # servidor: app FastAPI + protocolo + backends
+│   ├── app.py               # fábrica do FastAPI (rotas, /ws, /stream, lifespan)
+│   ├── protocol.py          # registro de comandos (dict t → handler)
+│   ├── ws.py                # /ws: autenticação + despacho
+│   ├── stream.py            # /stream: espelhamento MJPEG
+│   ├── telemetry.py         # push {t:"telemetry"} p/ clientes inscritos
+│   ├── discovery.py         # descoberta UDP broadcast (probe na porta 8765)
+│   ├── config.py            # Config (--port/--pin/--no-firewall) + caminhos
+│   ├── main.py              # CLI, firewall, QR code, uvicorn
+│   └── backends/            # interface única: real.py (Windows) × mock.py
+├── hardware/                # ally_acpi, ally_led, display, screen, games
+├── system/                  # ram, power
+├── virtual_input/           # win_input, cursor, keyboard
+├── monitoring/              # collector: métricas single-flight + histórico 30 min
+├── tests/                   # pytest (mock): auth, comandos, stream, telemetria, UDP
+├── static/                  # interface do celular (PWA)
+├── build.bat                # compilar o exe localmente
 └── requirements.txt
 ```
