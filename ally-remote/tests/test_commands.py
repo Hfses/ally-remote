@@ -13,6 +13,8 @@ EXPECTED_COMMANDS = {
     "fan", "games", "launch", "stats", "status", "ping",
     # FASE 1 (aditivos — clientes antigos os ignoram)
     "telemetry_sub", "hist",
+    # Gamepad virtual (aditivos)
+    "gp_btn", "gp_lstick", "gp_rstick", "gp_trigger", "gp_reset", "gp_info",
 }
 
 
