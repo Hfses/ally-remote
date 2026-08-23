@@ -324,7 +324,7 @@ class MainActivity : Activity() {
     }
 
     /** Fallback: varre a sub-rede Wi-Fi atrás da porta 8765 aberta. */
-    private fun tcpScan(): String? {
+    private suspend fun tcpScan(): String? {
         val prefix = subnetPrefix() ?: return null
         return try {
             coroutineScope {
