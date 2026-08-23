@@ -89,6 +89,63 @@ async def _handle_hist(ctx: Any, msg: dict) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Handlers do Gamepad virtual
+# ---------------------------------------------------------------------------
+
+def _gp():
+    """Importação lazy do gamepad (evita erro em ambiente sem Windows)."""
+    try:
+        from virtual_input.gamepad import get_gamepad
+        return get_gamepad()
+    except Exception:
+        return None
+
+
+async def _handle_gp_btn(ctx: Any, msg: dict) -> None:
+    """{t:"gp_btn", btn:"a", pressed:true}"""
+    gp = _gp()
+    if gp:
+        await asyncio.to_thread(gp.button, str(msg.get("btn", "")), bool(msg.get("pressed", True)))
+
+
+async def _handle_gp_lstick(ctx: Any, msg: dict) -> None:
+    """{t:"gp_lstick", x:0.0, y:0.0}  — [-1,1]"""
+    gp = _gp()
+    if gp:
+        await asyncio.to_thread(gp.left_stick, float(msg.get("x", 0)), float(msg.get("y", 0)))
+
+
+async def _handle_gp_rstick(ctx: Any, msg: dict) -> None:
+    """{t:"gp_rstick", x:0.0, y:0.0}"""
+    gp = _gp()
+    if gp:
+        await asyncio.to_thread(gp.right_stick, float(msg.get("x", 0)), float(msg.get("y", 0)))
+
+
+async def _handle_gp_trigger(ctx: Any, msg: dict) -> None:
+    """{t:"gp_trigger", side:"lt"|"rt", value:0.0}  — [0,1]"""
+    gp = _gp()
+    if gp:
+        await asyncio.to_thread(gp.trigger, str(msg.get("side", "lt")), float(msg.get("value", 0)))
+
+
+async def _handle_gp_reset(ctx: Any, msg: dict) -> None:
+    """{t:"gp_reset"}"""
+    gp = _gp()
+    if gp:
+        await asyncio.to_thread(gp.reset)
+    await ctx.ws.send_json({"t": "gp_reset", "ok": True})
+
+
+async def _handle_gp_info(ctx: Any, msg: dict) -> None:
+    """{t:"gp_info"} — retorna modo disponível (vigem|keyboard|none)"""
+    gp = _gp()
+    mode = gp.mode if gp else "none"
+    available = gp.available if gp else False
+    await ctx.ws.send_json({"t": "gp_info", "mode": mode, "available": available})
+
+
+# ---------------------------------------------------------------------------
 # Registro de TODOS os comandos
 # ---------------------------------------------------------------------------
 
@@ -145,3 +202,11 @@ def setup_commands() -> None:
     # ---- FASE 1 (aditivo — clientes antigos ignoram t desconhecido) ----
     register_plain("telemetry_sub", _handle_telemetry_sub)
     register_plain("hist", _handle_hist)
+
+    # ---- Gamepad virtual (ViGEmBus / fallback teclado) ----
+    register_plain("gp_btn",    _handle_gp_btn)
+    register_plain("gp_lstick", _handle_gp_lstick)
+    register_plain("gp_rstick", _handle_gp_rstick)
+    register_plain("gp_trigger",_handle_gp_trigger)
+    register_plain("gp_reset",  _handle_gp_reset)
+    register_plain("gp_info",   _handle_gp_info)

@@ -28,8 +28,6 @@
     display:flex; flex-direction:column; overflow:hidden;
     touch-action:manipulation; user-select:none; -webkit-user-select:none;
   }
-
-  /* ============ header ============ */
   header{
     padding:calc(10px + var(--sat)) 14px 10px;
     display:flex; align-items:center; gap:10px;
@@ -52,30 +50,23 @@
   .chip em.hot{color:var(--red2)}
 
   main{flex:1;min-height:0;display:flex;flex-direction:column;padding:10px}
-  .view{display:none;flex:1;min-height:0;flex-direction:column;gap:10px;
-    animation:fadein .18s ease}
+  .view{display:none;flex:1;min-height:0;flex-direction:column;gap:10px;animation:fadein .18s ease}
   .view.act{display:flex}
   .view.scrolly{overflow-y:auto;padding-bottom:6px}
   @keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
-  /* ============ touchpad ============ */
+  /* ===== touchpad ===== */
   #padwrap{flex:1;display:flex;gap:10px;min-height:200px}
   #pad{
     flex:1;position:relative;overflow:hidden;border-radius:16px;
-    background:
-      radial-gradient(ellipse at 50% 35%, #191d24 0%, var(--panel) 75%);
-    border:1px solid var(--line);
-    box-shadow:inset 0 0 40px rgba(0,0,0,.45);
-    touch-action:none;
+    background:radial-gradient(ellipse at 50% 35%, #191d24 0%, var(--panel) 75%);
+    border:1px solid var(--line);box-shadow:inset 0 0 40px rgba(0,0,0,.45);touch-action:none;
   }
   #pad::before{content:'';position:absolute;inset:0;opacity:.35;
-    background-image:
-      linear-gradient(var(--line) 1px, transparent 1px),
-      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-image:linear-gradient(var(--line) 1px, transparent 1px),linear-gradient(90deg, var(--line) 1px, transparent 1px);
     background-size:34px 34px}
   #padhint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-    color:var(--dim);font:11px var(--mono);text-align:center;line-height:2;pointer-events:none;
-    letter-spacing:.04em}
+    color:var(--dim);font:11px var(--mono);text-align:center;line-height:2;pointer-events:none;letter-spacing:.04em}
   #glow{position:absolute;width:64px;height:64px;border-radius:50%;pointer-events:none;
     background:radial-gradient(circle, rgba(255,68,56,.4) 0%, transparent 70%);
     transform:translate(-50%,-50%);opacity:0;transition:opacity .25s}
@@ -83,8 +74,7 @@
     width:52px;border-radius:16px;border:1px solid var(--line);
     background:linear-gradient(180deg,var(--panel2),var(--panel));
     display:flex;flex-direction:column;align-items:center;justify-content:space-between;
-    padding:14px 0;color:var(--dim);font:10px var(--mono);letter-spacing:.2em;
-    touch-action:none;
+    padding:14px 0;color:var(--dim);font:10px var(--mono);letter-spacing:.2em;touch-action:none;
   }
   #scroll span{writing-mode:vertical-rl}
   #scroll svg{opacity:.6}
@@ -96,46 +86,163 @@
   }
   #mbtns button:active{border-color:var(--red);color:var(--red2);transform:scale(.98)}
 
-  /* ============ teclado ============ */
-  #typebar{display:flex;gap:8px}
+  /* ===== teclado ===== */
+  #typebar{display:flex;gap:8px;align-items:center}
   #txt{
     flex:1;background:var(--panel);border:1px solid var(--line);border-radius:12px;
     color:var(--txt);padding:14px;font-size:15px;outline:none;
     user-select:text;-webkit-user-select:text;
   }
   #txt:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(255,68,56,.15)}
-  #send{width:84px;background:var(--grad);border:0;border-radius:12px;color:#fff;
-    font:800 13px var(--mono);letter-spacing:.08em;box-shadow:0 4px 14px rgba(255,68,56,.3)}
+  #live-toggle{
+    width:72px;height:50px;border-radius:12px;border:1px solid var(--line);
+    background:var(--panel2);color:var(--dim);font:700 9px var(--mono);
+    letter-spacing:.08em;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  }
+  #live-toggle.on{border-color:var(--ok);color:var(--ok);background:rgba(61,220,132,.1)}
+  #live-toggle .dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+  #send{width:72px;height:50px;background:var(--grad);border:0;border-radius:12px;color:#fff;
+    font:800 11px var(--mono);letter-spacing:.06em;box-shadow:0 4px 14px rgba(255,68,56,.3)}
   #send:active{transform:scale(.97)}
+
+  /* abas internas do teclado */
+  .ktabs{display:flex;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel2)}
+  .ktabs button{flex:1;padding:9px 0;background:none;border:0;color:var(--dim);font:700 10px var(--mono);letter-spacing:.1em}
+  .ktabs button.act{background:var(--grad);color:#fff}
+  .kpage{display:none;flex-direction:column;gap:8px}
+  .kpage.act{display:flex}
+
   .keygrid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}
-  .keygrid button, .mediarow button{
+  .keygrid4{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+  .keygrid6{display:grid;grid-template-columns:repeat(6,1fr);gap:7px}
+  .keygrid button,.keygrid4 button,.keygrid6 button,.mediarow button{
     height:46px;border-radius:10px;border:1px solid var(--line);
     background:linear-gradient(180deg,var(--panel2),var(--panel));
     color:var(--dim);font:600 12px var(--mono);
     display:flex;align-items:center;justify-content:center;gap:4px;
   }
-  .keygrid button:active, .mediarow button:active{color:var(--red2);border-color:var(--red);transform:scale(.96)}
+  .keygrid button:active,.keygrid4 button:active,.keygrid6 button:active,.mediarow button:active{
+    color:var(--red2);border-color:var(--red);transform:scale(.96)}
+  .keygrid button.wide,.keygrid4 button.wide{grid-column:span 2}
+  .keygrid button.wide3{grid-column:span 3}
   .mediarow{display:grid;grid-template-columns:repeat(6,1fr);gap:7px}
   .mediarow svg{width:19px;height:19px;fill:currentColor}
   #altf4{width:100%;height:46px;border-radius:10px;border:1px solid rgba(255,68,56,.4);
     background:rgba(255,68,56,.08);color:var(--red2);font:700 12px var(--mono);letter-spacing:.1em}
   #altf4:active{background:rgba(255,68,56,.2)}
   .klabel{font:600 10px var(--mono);color:var(--dim);letter-spacing:.22em;margin:4px 2px 0}
+  .win-shortcut-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}
+  .win-shortcut-grid button{
+    height:46px;border-radius:10px;border:1px solid var(--line);
+    background:linear-gradient(180deg,var(--panel2),var(--panel));
+    color:var(--dim);font:600 11px var(--mono);
+    display:flex;align-items:center;justify-content:center;gap:6px;padding:0 8px;
+  }
+  .win-shortcut-grid button:active{color:var(--red2);border-color:var(--red);transform:scale(.96)}
+  .win-shortcut-grid button .kcombo{font-size:9px;color:var(--dim);margin-left:auto;letter-spacing:.05em}
 
-  /* ============ sistema ============ */
+  /* ===== gamepad ===== */
+  #view-gp{gap:8px}
+  #gp-status{font:10px var(--mono);color:var(--dim);text-align:center;padding:4px}
+  #gp-status em{font-style:normal;color:var(--ok)}
+  #gp-status em.warn{color:var(--warn)}
+  .gp-layout{display:flex;flex-direction:column;gap:8px;flex:1}
+  /* Triggers */
+  .gp-triggers{display:flex;gap:8px;height:44px}
+  .gp-trigger{
+    flex:1;border-radius:10px;border:1px solid var(--line);
+    background:linear-gradient(180deg,var(--panel2),var(--panel));
+    color:var(--dim);font:800 11px var(--mono);letter-spacing:.1em;
+    position:relative;overflow:hidden;touch-action:none;
+  }
+  .gp-trigger .tbar{
+    position:absolute;bottom:0;left:0;right:0;height:4px;
+    background:var(--grad);border-radius:0 0 10px 10px;transition:height .05s;
+  }
+  .gp-trigger:active .tbar{height:100%;opacity:.25}
+  /* Bumpers */
+  .gp-bumpers{display:flex;gap:8px;height:40px}
+  .gp-bumper{
+    flex:1;border-radius:10px;border:1px solid var(--line);
+    background:linear-gradient(180deg,var(--panel2),var(--panel));
+    color:var(--dim);font:800 11px var(--mono);letter-spacing:.1em;
+  }
+  .gp-bumper:active{border-color:var(--red);color:var(--red2);transform:scale(.97)}
+  /* Sticks + ABXY area */
+  .gp-mid{display:flex;gap:8px;align-items:center;flex:1;min-height:0}
+  /* Joystick */
+  .joystick-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;flex:none}
+  .joystick{
+    width:100px;height:100px;border-radius:50%;border:2px solid var(--line);
+    background:radial-gradient(circle at 50% 50%, #1e2130, var(--panel));
+    position:relative;touch-action:none;box-shadow:inset 0 2px 8px rgba(0,0,0,.5);
+  }
+  .joystick-knob{
+    position:absolute;width:42px;height:42px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #3a3f52, #1a1d25);
+    border:2px solid var(--line);
+    top:50%;left:50%;transform:translate(-50%,-50%);
+    box-shadow:0 2px 8px rgba(0,0,0,.6);transition:box-shadow .1s;
+  }
+  .joystick:active .joystick-knob{box-shadow:0 0 12px rgba(255,68,56,.5),0 2px 8px rgba(0,0,0,.6)}
+  .joystick-label{font:600 9px var(--mono);color:var(--dim);letter-spacing:.15em}
+  /* D-pad */
+  .dpad{
+    width:96px;height:96px;display:grid;
+    grid-template-columns:32px 32px 32px;
+    grid-template-rows:32px 32px 32px;
+    gap:2px;
+  }
+  .dpad button{
+    border-radius:6px;border:1px solid var(--line);
+    background:linear-gradient(180deg,var(--panel2),var(--panel));
+    color:var(--txt);font:700 14px var(--mono);display:flex;align-items:center;justify-content:center;
+  }
+  .dpad button:active{background:var(--red);border-color:var(--red2);color:#fff;transform:scale(.93)}
+  .dpad .empty{background:none;border:none;pointer-events:none}
+  /* Center buttons */
+  .gp-center{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;justify-content:center}
+  .gp-center-row{display:flex;gap:8px}
+  .gp-mini-btn{
+    width:44px;height:28px;border-radius:8px;border:1px solid var(--line);
+    background:linear-gradient(180deg,var(--panel2),var(--panel));
+    color:var(--dim);font:700 9px var(--mono);letter-spacing:.06em;
+  }
+  .gp-mini-btn:active{border-color:var(--red);color:var(--red2);transform:scale(.93)}
+  /* ABXY */
+  .abxy{
+    width:104px;height:104px;display:grid;
+    grid-template-columns:34px 34px 34px;
+    grid-template-rows:34px 34px 34px;
+    gap:1px;
+  }
+  .abxy button{
+    border-radius:50%;border:1px solid var(--line);
+    background:linear-gradient(180deg,var(--panel2),var(--panel));
+    font:800 12px var(--mono);display:flex;align-items:center;justify-content:center;
+  }
+  .abxy button:active{transform:scale(.88);box-shadow:0 0 12px currentColor}
+  .abxy .btn-a{color:#3ddc84;border-color:#3ddc84}
+  .abxy .btn-b{color:#ff4438;border-color:#ff4438}
+  .abxy .btn-x{color:#3d7bff;border-color:#3d7bff}
+  .abxy .btn-y{color:#ffb020;border-color:#ffb020}
+  .abxy .btn-a:active{background:rgba(61,220,132,.25)}
+  .abxy .btn-b:active{background:rgba(255,68,56,.25)}
+  .abxy .btn-x:active{background:rgba(61,123,255,.25)}
+  .abxy .btn-y:active{background:rgba(255,176,32,.25)}
+  .abxy .empty{background:none;border:none;pointer-events:none}
+
+  /* ===== sistema ===== */
   .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;
     padding:14px;display:flex;flex-direction:column;gap:11px;flex:none}
   .card h3{font:700 10px var(--mono);color:var(--dim);letter-spacing:.24em;
     display:flex;align-items:center;gap:8px}
   .card h3 svg{width:14px;height:14px;fill:var(--red)}
   .card h3 .right{margin-left:auto;color:var(--txt);letter-spacing:.05em;font-size:11px}
-
-  .bar{height:8px;border-radius:99px;background:var(--panel2);overflow:hidden;
-    border:1px solid var(--line)}
+  .bar{height:8px;border-radius:99px;background:var(--panel2);overflow:hidden;border:1px solid var(--line)}
   .bar i{display:block;height:100%;border-radius:99px;background:var(--grad);
     transition:width .5s ease;box-shadow:0 0 8px rgba(255,68,56,.5)}
   .bar i.cool{background:linear-gradient(90deg,#2f9e64,#3ddc84);box-shadow:0 0 8px rgba(61,220,132,.4)}
-
   #rambtn{background:var(--grad);border:0;border-radius:12px;color:#fff;
     font:800 13px var(--mono);padding:14px;letter-spacing:.08em;
     box-shadow:0 4px 14px rgba(255,68,56,.3)}
@@ -143,17 +250,13 @@
   #rambtn:disabled{opacity:.5}
   #raminfo{font:11px var(--mono);color:var(--dim);line-height:1.7}
   #raminfo em{font-style:normal;color:var(--ok)}
-
-  .seg{display:flex;border:1px solid var(--line);border-radius:12px;overflow:hidden;
-    background:var(--panel2)}
+  .seg{display:flex;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel2)}
   .seg button{flex:1;padding:12px 0;background:none;border:0;color:var(--dim);
     font:700 11px var(--mono);letter-spacing:.06em;transition:.15s}
   .seg button.act{background:var(--grad);color:#fff}
   .seg.mini button{padding:9px 0;font-size:10px}
-
   #leds{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
-  .sw{width:38px;height:38px;border-radius:50%;border:2px solid var(--line);
-    transition:transform .1s}
+  .sw{width:38px;height:38px;border-radius:50%;border:2px solid var(--line);transition:transform .1s}
   .sw:active{transform:scale(.85)}
   .sw.sel{border-color:#fff;box-shadow:0 0 10px 2px rgba(255,255,255,.25)}
   #ledpick{width:38px;height:38px;border:2px dashed var(--line);border-radius:50%;
@@ -161,7 +264,6 @@
     -webkit-appearance:none;appearance:none;overflow:hidden}
   #ledpick::-webkit-color-swatch-wrapper{padding:0;opacity:0}
   #ledpick::-webkit-color-swatch{border:none;opacity:0}
-
   #batline{display:flex;align-items:center;gap:10px;font:12px var(--mono);color:var(--dim)}
   #batline .bar{flex:1}
   #batline em{font-style:normal;color:var(--txt)}
@@ -175,15 +277,14 @@
   .pwrow button:active{transform:scale(.97)}
   .pwrow .danger{color:var(--red2);border-color:rgba(255,68,56,.4);background:rgba(255,68,56,.07)}
 
-  /* ============ tela / espelhamento ============ */
+  /* ===== espelhamento ===== */
   #mirrorwrap{position:relative;width:100%;min-height:190px;background:#000;
     border:1px solid var(--line);border-radius:14px;overflow:hidden;
     display:flex;align-items:center;justify-content:center;touch-action:none}
   #mirror{width:100%;height:auto;display:none}
   #mirror.on{display:block}
   #mirror.on ~ #mirrorhint{display:none}
-  #mirrorhint{position:absolute;color:var(--dim);font:11px var(--mono);text-align:center;
-    line-height:1.9;padding:22px;pointer-events:none}
+  #mirrorhint{position:absolute;color:var(--dim);font:11px var(--mono);text-align:center;line-height:1.9;padding:22px;pointer-events:none}
   #screenbar{display:flex;gap:8px;align-items:stretch}
   #streambtn{flex:1;padding:13px;border:0;border-radius:12px;color:#fff;
     font:800 13px var(--mono);background:var(--grad);letter-spacing:.06em;
@@ -201,8 +302,6 @@
     border-radius:50%;background:var(--red);border:3px solid #fff;box-shadow:0 0 8px rgba(255,68,56,.5)}
   .briline{display:flex;align-items:center;gap:10px}
   .briline span{font:11px var(--mono);color:var(--dim);min-width:34px;text-align:right}
-
-  /* fullscreen do espelhamento (paisagem, imersivo) */
   body.fs{overflow:hidden}
   body.fs header, body.fs nav, body.fs main > .view:not(#view-screen){display:none}
   body.fs main{padding:0}
@@ -213,7 +312,6 @@
   #fsbtn{flex:none;padding:0 16px;border:1px solid var(--line);border-radius:12px;
     background:var(--panel2);color:var(--txt);font:800 16px var(--mono)}
   #fsbtn:active{border-color:var(--red)}
-  /* controles flutuantes no modo tela cheia */
   #fsctl{position:fixed;inset:0;z-index:41;display:none;pointer-events:none}
   body.fs #fsctl{display:block}
   #fsexit{position:absolute;top:10px;right:10px;pointer-events:auto;
@@ -230,16 +328,11 @@
     display:flex;gap:10px;padding:10px}
   #fsclick button{flex:1;border-radius:12px;border:1px solid var(--line);
     background:rgba(19,21,27,.6);color:#fff;font:700 13px var(--mono)}
-
-  /* painel de stats (aba SISTEMA) */
   .statgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
-  .stat{background:var(--panel2);border:1px solid var(--line);border-radius:12px;
-    padding:10px;text-align:center}
+  .stat{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
   .stat .v{font:800 18px var(--mono);color:var(--txt)}
   .stat .v.hot{color:#ff5a3c}
   .stat .l{font:9px var(--mono);color:var(--dim);letter-spacing:.14em;margin-top:3px}
-
-  /* jogos */
   #gamesearch{background:var(--panel);border:1px solid var(--line);border-radius:12px;
     color:var(--txt);padding:12px 14px;font-size:15px;outline:none;width:100%;
     user-select:text;-webkit-user-select:text}
@@ -252,24 +345,18 @@
     align-items:center;justify-content:center;font-size:18px;
     background:linear-gradient(135deg,var(--red),var(--red2))}
   .game .gn{flex:1;min-width:0}
-  .game .gn b{display:block;font:600 14px var(--mono);color:var(--txt);
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .game .gn b{display:block;font:600 14px var(--mono);color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .game .gn span{font:10px var(--mono);color:var(--dim)}
   .game .play{font:800 11px var(--mono);color:var(--red2);letter-spacing:.06em}
   #gamesempty{font:12px var(--mono);color:var(--dim);text-align:center;padding:24px;line-height:1.7}
-
-  /* ============ nav ============ */
   nav{display:flex;border-top:1px solid var(--line);
-    background:rgba(19,21,27,.9);backdrop-filter:blur(10px);
-    padding-bottom:var(--sab)}
+    background:rgba(19,21,27,.9);backdrop-filter:blur(10px);padding-bottom:var(--sab)}
   nav button{flex:1;padding:9px 0 8px;background:none;border:0;color:var(--dim);
-    font:600 9.5px var(--mono);letter-spacing:.18em;
+    font:600 9px var(--mono);letter-spacing:.15em;
     display:flex;flex-direction:column;align-items:center;gap:3px}
-  nav button svg{width:21px;height:21px;fill:currentColor;transition:.15s}
+  nav button svg{width:20px;height:20px;fill:currentColor;transition:.15s}
   nav button.act{color:var(--red2)}
   nav button.act svg{filter:drop-shadow(0 0 6px rgba(255,68,56,.6))}
-
-  /* ============ overlays ============ */
   #toast{
     position:fixed;left:50%;bottom:calc(76px + var(--sab));
     transform:translateX(-50%) translateY(120px);
@@ -277,7 +364,6 @@
     color:var(--txt);font:12px var(--mono);padding:11px 15px;border-radius:10px;
     transition:transform .25s;max-width:92vw;z-index:60;box-shadow:0 8px 30px rgba(0,0,0,.5)}
   #toast.show{transform:translateX(-50%) translateY(0)}
-
   .modal{position:fixed;inset:0;background:rgba(5,6,8,.7);backdrop-filter:blur(6px);
     display:none;align-items:center;justify-content:center;z-index:70;padding:24px}
   .modal.show{display:flex}
@@ -294,11 +380,9 @@
   .modal .row button{flex:1;padding:13px 0;border-radius:10px;font:700 12px var(--mono);border:0}
   .btn-ghost{background:var(--panel2);color:var(--dim);border:1px solid var(--line) !important}
   .btn-red{background:var(--grad);color:#fff}
-
   #offbar{position:fixed;top:calc(52px + var(--sat));left:50%;transform:translateX(-50%);
     background:rgba(255,68,56,.12);border:1px solid rgba(255,68,56,.4);color:var(--red2);
-    font:11px var(--mono);padding:7px 14px;border-radius:99px;display:none;z-index:50;
-    white-space:nowrap}
+    font:11px var(--mono);padding:7px 14px;border-radius:99px;display:none;z-index:50;white-space:nowrap}
   #offbar.show{display:block}
 </style>
 </head>
@@ -340,33 +424,224 @@
   <section class="view scrolly" id="view-kbd">
     <div id="typebar">
       <input id="txt" type="text" placeholder="Digitar no Ally…" autocomplete="off" autocapitalize="off">
+      <button id="live-toggle" title="Modo ao vivo: envia enquanto digita">
+        <div class="dot"></div>LIVE
+      </button>
       <button id="send">ENVIAR</button>
     </div>
-    <div class="klabel">TECLAS</div>
-    <div class="keygrid">
-      <button data-k="esc">ESC</button><button data-k="tab">TAB</button>
-      <button data-k="win">WIN</button><button data-k="delete">DEL</button>
-      <button data-k="backspace">⌫</button>
-      <button data-k="left">◀</button><button data-k="up">▲</button>
-      <button data-k="down">▼</button><button data-k="right">▶</button>
-      <button data-k="enter">↵ ENTER</button>
+    <div class="ktabs">
+      <button class="act" data-kp="basic">BÁSICO</button>
+      <button data-kp="fn">F1-F12</button>
+      <button data-kp="win">WINDOWS</button>
+      <button data-kp="game">JOGOS</button>
     </div>
-    <div class="klabel">MÍDIA · VOLUME</div>
-    <div class="mediarow">
-      <button data-k="prev" title="anterior"><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
-      <button data-k="play" title="play/pause"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
-      <button data-k="next" title="próxima"><svg viewBox="0 0 24 24"><path d="M16 6h2v12h-2zm-2.5 6L5 18V6z"/></svg></button>
-      <button data-k="voldown" title="volume -"><svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4z"/></svg></button>
-      <button data-k="mute" title="mudo"><svg viewBox="0 0 24 24"><path d="M16.5 12a4.5 4.5 0 0 0-2.5-4v2.2l2.4 2.4zM19 12c0 .9-.2 1.8-.6 2.6l1.5 1.5A8.8 8.8 0 0 0 21 12a9 9 0 0 0-7-8.8v2.1A7 7 0 0 1 19 12zM4.3 3L3 4.3 7.7 9H3v6h4l5 5v-6.7l4.3 4.3a7 7 0 0 1-2.3 1.3v2.1a9 9 0 0 0 3.7-1.9L19.7 21l1.3-1.3zM12 4L9.9 6.1 12 8.2z"/></svg></button>
-      <button data-k="volup" title="volume +"><svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg></button>
+
+    <!-- aba básico -->
+    <div class="kpage act" id="kp-basic">
+      <div class="klabel">NAVEGAÇÃO</div>
+      <div class="keygrid">
+        <button data-k="esc">ESC</button>
+        <button data-k="tab">TAB</button>
+        <button data-k="win">WIN</button>
+        <button data-k="delete">DEL</button>
+        <button data-k="backspace">⌫</button>
+        <button data-k="left">◀</button>
+        <button data-k="up">▲</button>
+        <button data-k="down">▼</button>
+        <button data-k="right">▶</button>
+        <button data-k="enter">↵ ENTER</button>
+        <button data-k="home">HOME</button>
+        <button data-k="end">END</button>
+        <button data-k="pageup">PG ▲</button>
+        <button data-k="pagedown">PG ▼</button>
+        <button data-k="insert">INS</button>
+      </div>
+      <div class="klabel">MÍDIA · VOLUME</div>
+      <div class="mediarow">
+        <button data-k="prev"><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
+        <button data-k="play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+        <button data-k="next"><svg viewBox="0 0 24 24"><path d="M16 6h2v12h-2zm-2.5 6L5 18V6z"/></svg></button>
+        <button data-k="voldown"><svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4z"/></svg></button>
+        <button data-k="mute"><svg viewBox="0 0 24 24"><path d="M16.5 12a4.5 4.5 0 0 0-2.5-4v2.2l2.4 2.4zM19 12c0 .9-.2 1.8-.6 2.6l1.5 1.5A8.8 8.8 0 0 0 21 12a9 9 0 0 0-7-8.8v2.1A7 7 0 0 1 19 12zM4.3 3L3 4.3 7.7 9H3v6h4l5 5v-6.7l4.3 4.3a7 7 0 0 1-2.3 1.3v2.1a9 9 0 0 0 3.7-1.9L19.7 21l1.3-1.3zM12 4L9.9 6.1 12 8.2z"/></svg></button>
+        <button data-k="volup"><svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg></button>
+      </div>
+      <div class="klabel">SISTEMA</div>
+      <button id="altf4">ALT + F4 · FECHAR JANELA ATIVA</button>
     </div>
-    <div class="klabel">SISTEMA</div>
-    <button id="altf4">ALT + F4 · FECHAR JANELA ATIVA</button>
+
+    <!-- aba F1-F12 -->
+    <div class="kpage" id="kp-fn">
+      <div class="klabel">TECLAS DE FUNÇÃO</div>
+      <div class="keygrid4">
+        <button data-k="f1">F1</button><button data-k="f2">F2</button>
+        <button data-k="f3">F3</button><button data-k="f4">F4</button>
+        <button data-k="f5">F5</button><button data-k="f6">F6</button>
+        <button data-k="f7">F7</button><button data-k="f8">F8</button>
+        <button data-k="f9">F9</button><button data-k="f10">F10</button>
+        <button data-k="f11">F11</button><button data-k="f12">F12</button>
+      </div>
+      <div class="klabel">MODIFICADORES</div>
+      <div class="keygrid4">
+        <button data-k="shift">SHIFT</button>
+        <button data-k="ctrl">CTRL</button>
+        <button data-k="alt">ALT</button>
+        <button data-k="win">WIN</button>
+        <button data-k="capslock">CAPS</button>
+        <button data-k="numlock">NUM</button>
+        <button data-k="scrolllock">SCR</button>
+        <button data-k="printscreen">PRT SC</button>
+      </div>
+      <div class="klabel">SÍMBOLOS COMUNS</div>
+      <div class="keygrid6">
+        <button data-k="~">~</button><button data-k="`">`</button>
+        <button data-k="!">!</button><button data-k="@">@</button>
+        <button data-k="#">#</button><button data-k="$">$</button>
+        <button data-k="%">%</button><button data-k="^">^</button>
+        <button data-k="&amp;">&amp;</button><button data-k="*">*</button>
+        <button data-k="(">(</button><button data-k=")">)</button>
+        <button data-k="-">-</button><button data-k="=">═</button>
+        <button data-k="[">[</button><button data-k="]">]</button>
+        <button data-k="/">/</button><button data-k="\\">\\</button>
+      </div>
+    </div>
+
+    <!-- aba Windows -->
+    <div class="kpage" id="kp-win">
+      <div class="klabel">ATALHOS DO WINDOWS</div>
+      <div class="win-shortcut-grid">
+        <button data-k="win_d">🖥️ Área de Trabalho<span class="kcombo">WIN+D</span></button>
+        <button data-k="win_e">📁 Explorador<span class="kcombo">WIN+E</span></button>
+        <button data-k="win_l">🔒 Bloquear PC<span class="kcombo">WIN+L</span></button>
+        <button data-k="win_r">⚡ Executar…<span class="kcombo">WIN+R</span></button>
+        <button data-k="win_i">⚙️ Configurações<span class="kcombo">WIN+I</span></button>
+        <button data-k="win_tab">🗂️ Task View<span class="kcombo">WIN+TAB</span></button>
+        <button data-k="win_shift_s">✂️ Captura de Tela<span class="kcombo">WIN+⇧+S</span></button>
+        <button data-k="win_prtsc">📷 Print Screen<span class="kcombo">WIN+PRT</span></button>
+        <button data-k="alt_tab">↔️ Trocar Janela<span class="kcombo">ALT+TAB</span></button>
+        <button data-k="taskmanager">📊 Task Manager<span class="kcombo">CTRL+⇧+ESC</span></button>
+        <button data-k="win_x">🛠️ Menu Power<span class="kcombo">WIN+X</span></button>
+        <button data-k="win_a">🔔 Notificações<span class="kcombo">WIN+A</span></button>
+        <button data-k="ctrl_z">↩️ Desfazer<span class="kcombo">CTRL+Z</span></button>
+        <button data-k="ctrl_c">📋 Copiar<span class="kcombo">CTRL+C</span></button>
+        <button data-k="ctrl_v">📥 Colar<span class="kcombo">CTRL+V</span></button>
+        <button data-k="ctrl_x">✂️ Recortar<span class="kcombo">CTRL+X</span></button>
+        <button data-k="ctrl_a">☑️ Selec. Tudo<span class="kcombo">CTRL+A</span></button>
+        <button data-k="ctrl_s">💾 Salvar<span class="kcombo">CTRL+S</span></button>
+        <button data-k="ctrl_shift_esc">📊 Task Manager<span class="kcombo">CTRL+⇧+ESC</span></button>
+        <button data-k="ctrl_alt_del">🆘 Ctrl+Alt+Del<span class="kcombo">C+A+D</span></button>
+      </div>
+    </div>
+
+    <!-- aba jogos -->
+    <div class="kpage" id="kp-game">
+      <div class="klabel">TECLADO DE JOGO</div>
+      <div class="keygrid">
+        <button data-k="1">1</button><button data-k="2">2</button>
+        <button data-k="3">3</button><button data-k="4">4</button>
+        <button data-k="5">5</button><button data-k="6">6</button>
+        <button data-k="7">7</button><button data-k="8">8</button>
+        <button data-k="9">9</button><button data-k="0">0</button>
+      </div>
+      <div class="klabel">WASD + AÇÕES</div>
+      <div class="keygrid">
+        <button data-k="q">Q</button><button data-k="w">W</button>
+        <button data-k="e">E</button><button data-k="r">R</button>
+        <button data-k="t">T</button>
+        <button data-k="a">A</button><button data-k="s">S</button>
+        <button data-k="d">D</button><button data-k="f">F</button>
+        <button data-k="g">G</button>
+        <button data-k="shift">⇧ SHIFT</button>
+        <button data-k="ctrl">CTRL</button>
+        <button data-k="alt">ALT</button>
+        <button data-k="space" class="wide">ESPAÇO</button>
+      </div>
+      <div class="klabel">ATALHOS DE JOGO</div>
+      <div class="keygrid4">
+        <button data-k="f1">F1</button><button data-k="f2">F2</button>
+        <button data-k="f3">F3</button><button data-k="f4">F4</button>
+        <button data-k="f5">F5</button><button data-k="f9">F9</button>
+        <button data-k="f10">F10</button><button data-k="f11">F11</button>
+        <button data-k="escape">ESC</button>
+        <button data-k="printscreen">PRT SC</button>
+        <button data-k="m">M (MAPA)</button>
+        <button data-k="i">I (INV)</button>
+        <button data-k="p">P</button><button data-k="u">U</button>
+        <button data-k="j">J</button><button data-k="k">K</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ GAMEPAD ============ -->
+  <section class="view" id="view-gp">
+    <div id="gp-status">Verificando gamepad… <em id="gp-mode">—</em></div>
+    <div class="gp-layout">
+      <!-- Gatilhos -->
+      <div class="gp-triggers">
+        <button class="gp-trigger" id="gp-lt" data-side="lt">
+          LT<div class="tbar" id="lt-bar"></div>
+        </button>
+        <button class="gp-trigger" id="gp-rt" data-side="rt">
+          RT<div class="tbar" id="rt-bar"></div>
+        </button>
+      </div>
+      <!-- Bumpers -->
+      <div class="gp-bumpers">
+        <button class="gp-bumper" id="gp-lb" data-btn="lb">LB</button>
+        <button class="gp-bumper" id="gp-rb" data-btn="rb">RB</button>
+      </div>
+      <!-- Área central -->
+      <div class="gp-mid">
+        <!-- Stick esquerdo + D-pad -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+          <div class="joystick" id="ls-stick">
+            <div class="joystick-knob" id="ls-knob"></div>
+          </div>
+          <div class="joystick-label">L STICK</div>
+          <div class="dpad">
+            <div class="empty"></div>
+            <button data-btn="dup">▲</button>
+            <div class="empty"></div>
+            <button data-btn="dleft">◀</button>
+            <div class="empty"></div>
+            <button data-btn="dright">▶</button>
+            <div class="empty"></div>
+            <button data-btn="ddown">▼</button>
+            <div class="empty"></div>
+          </div>
+        </div>
+        <!-- Centro: Start/Back/Guide -->
+        <div class="gp-center">
+          <div class="gp-center-row">
+            <button class="gp-mini-btn" data-btn="back">BACK</button>
+            <button class="gp-mini-btn" data-btn="guide" style="background:var(--grad);border:0;color:#fff">⊙</button>
+            <button class="gp-mini-btn" data-btn="start">START</button>
+          </div>
+          <button onclick="send({t:'gp_reset'})" style="font:600 9px var(--mono);color:var(--dim);background:none;border:1px solid var(--line);border-radius:8px;padding:6px 12px">RESET</button>
+        </div>
+        <!-- Stick direito + ABXY -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+          <div class="joystick" id="rs-stick">
+            <div class="joystick-knob" id="rs-knob"></div>
+          </div>
+          <div class="joystick-label">R STICK</div>
+          <div class="abxy">
+            <div class="empty"></div>
+            <button class="btn-y" data-btn="y">Y</button>
+            <div class="empty"></div>
+            <button class="btn-x" data-btn="x">X</button>
+            <div class="empty"></div>
+            <button class="btn-b" data-btn="b">B</button>
+            <div class="empty"></div>
+            <button class="btn-a" data-btn="a">A</button>
+            <div class="empty"></div>
+          </div>
+        </div>
+      </div>
+    </div>
   </section>
 
   <!-- ============ SISTEMA ============ -->
   <section class="view scrolly" id="view-sys">
-
     <div class="card">
       <h3><svg viewBox="0 0 24 24"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h10v2H4z"/></svg>
         PAINEL AO VIVO</h3>
@@ -378,12 +653,7 @@
         <div class="stat"><div class="v" id="s-bat">—</div><div class="l">BATERIA</div></div>
         <div class="stat"><div class="v" id="s-fps">—</div><div class="l">FPS</div></div>
       </div>
-      <div style="font:10px var(--mono);color:var(--dim);line-height:1.6">
-        Atualiza ao vivo. FPS real precisa do RTSS/Armoury ativo no jogo — sem
-        isso fica em "—" (temperatura, CPU e fan são medidos direto).
-      </div>
     </div>
-
     <div class="card">
       <h3><svg viewBox="0 0 24 24"><path d="M17 17H7V7h10m4 4V9h-2V7a2 2 0 0 0-2-2h-2V3h-2v2h-2V3H9v2H7a2 2 0 0 0-2 2v2H3v2h2v2H3v2h2v2a2 2 0 0 0 2 2h2v2h2v-2h2v2h2v-2h2a2 2 0 0 0 2-2v-2h2v-2h-2v-2m-6 2h-2v-2h2m2-2H9v6h6z"/></svg>
         MEMÓRIA RAM <span class="right" id="ramlabel">—</span></h3>
@@ -391,7 +661,6 @@
       <button id="rambtn">LIBERAR RAM</button>
       <div id="raminfo">Apara working sets + limpa a standby list. Requer servidor como Administrador.</div>
     </div>
-
     <div class="card">
       <h3><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10h-2a8 8 0 1 1-8-8zm1 3v6.6l4.2 2.5.8-1.3-3.5-2.1V5z"/></svg>
         DESEMPENHO / FAN <span class="right" id="fanlabel">—</span></h3>
@@ -408,13 +677,7 @@
         <input type="range" id="fanslider" min="20" max="100" value="100">
         <span id="fanval">100%</span>
       </div>
-      <div style="font:10px var(--mono);color:var(--dim);line-height:1.6">
-        <b>VENTOINHA MÁX.</b> = Turbo (refrigeração máxima garantida). A barra
-        ajusta a fan manualmente (experimental — pode não pegar em todo Ally);
-        <b>AUTOMÁTICO</b> devolve o controle ao sistema.
-      </div>
     </div>
-
     <div class="card">
       <h3><svg viewBox="0 0 24 24"><path d="M10.07 14.27a1 1 0 0 1 .9-.27l9.4 2.35a1 1 0 0 1 .16 1.88l-4.2 1.8-1.8 4.2a1 1 0 0 1-1.88-.16l-2.85-9.9a1 1 0 0 1 .27-.9zM12 2v4h-2V2zm10 10h-4v-2h4zM4.9 3.5 7.7 6.3 6.3 7.7 3.5 4.9zM2 12h4v-2H2z"/></svg>
         PONTEIRO DO MOUSE</h3>
@@ -424,9 +687,7 @@
         <button data-ps="5">GRANDE</button>
         <button data-ps="9">GIGANTE</button>
       </div>
-      <div style="font:11px var(--mono);color:var(--dim);line-height:1.6">O Windows esconde o ponteiro depois de usar a tela de toque — ENCONTRAR faz ele aparecer e girar na tela.</div>
     </div>
-
     <div class="card">
       <h3><svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 2.4 1.2 4.5 3 5.7V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.3c1.8-1.2 3-3.3 3-5.7a7 7 0 0 0-7-7zm-3 18h6v1a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1z"/></svg>
         LED · ANALÓGICOS</h3>
@@ -452,7 +713,6 @@
         <button data-ls="245">RÁPIDO</button>
       </div>
     </div>
-
     <div class="card">
       <h3><svg viewBox="0 0 24 24"><path d="M16 7V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-2h1a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2zm-3 12H7v-3h6zm0-5H7v-3h6zm0-5H7V6h6z"/></svg>
         ENERGIA</h3>
@@ -468,7 +728,6 @@
         <button data-p="cancel"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm5 13.6L15.6 17 12 13.4 8.4 17 7 15.6 10.6 12 7 8.4 8.4 7 12 10.6 15.6 7 17 8.4 13.4 12z"/></svg>CANCELAR</button>
       </div>
     </div>
-
   </section>
 
   <!-- ============ TELA (espelhamento) ============ -->
@@ -476,7 +735,7 @@
     <div id="mirrorwrap">
       <img id="mirror" alt="tela do Ally">
       <div id="mirrorhint">Toque em <b>INICIAR</b> para ver a tela do Ally aqui.<br>
-        Depois: <b>toque = clique</b> no ponto tocado ·<br>modo touchpad = arrastar para mover a mira</div>
+        Depois: <b>toque = clique</b> no ponto tocado</div>
     </div>
     <div id="screenbar">
       <button id="streambtn">▶ INICIAR ESPELHAMENTO</button>
@@ -495,7 +754,6 @@
       <button class="mbtn" id="ms-l">L · CLIQUE</button>
       <button class="mbtn" id="ms-r">R · CLIQUE</button>
     </div>
-
     <div class="card">
       <h3><svg viewBox="0 0 24 24"><path d="M12 7a5 5 0 1 0 5 5 5 5 0 0 0-5-5zm0-5v2m0 16v2m10-10h-2M4 12H2m15.5-6.5-1.4 1.4M7.9 16.1l-1.4 1.4m0-11.3 1.4 1.4m8.2 8.2 1.4 1.4" stroke="var(--red)" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>
         BRILHO · ECONOMIA DE BATERIA</h3>
@@ -506,11 +764,6 @@
       <div class="mrow">
         <button class="mbtn" id="minbtn">🌙 TELA MÍNIMA</button>
         <button class="mbtn" id="offbtn">⏻ DESLIGAR TELA</button>
-      </div>
-      <div style="font:11px var(--mono);color:var(--dim);line-height:1.7">
-        Jogando pelo celular? Use <b>TELA MÍNIMA</b> (brilho 0): o jogo continua,
-        o espelhamento continua e economiza bateria. <b>DESLIGAR TELA</b> apaga de
-        vez (mais economia), mas pode pausar o espelhamento e liga ao tocar no Ally.
       </div>
     </div>
   </section>
@@ -526,15 +779,15 @@
 <nav>
   <button class="act" data-v="mouse"><svg viewBox="0 0 24 24"><path d="M11 1.1V11H3.1A9 9 0 0 1 11 1.1zM3.1 13H11v9.9A9 9 0 0 1 3.1 13zM13 22.9V13h7.9a9 9 0 0 1-7.9 9.9zM20.9 11H13V1.1A9 9 0 0 1 20.9 11z"/></svg>MOUSE</button>
   <button data-v="kbd"><svg viewBox="0 0 24 24"><path d="M20 5H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zM6 8h2v2H6zm0 3h2v2H6zm3-3h2v2H9zm0 3h2v2H9zm3-3h2v2h-2zm0 3h2v2h-2zm3-3h2v2h-2zm0 3h2v2h-2zM7 14h10v2H7z"/></svg>TECLADO</button>
+  <button data-v="gp"><svg viewBox="0 0 24 24"><path d="M7 6h10a5 5 0 0 1 5 5v2a4 4 0 0 1-7.2 2.4l-.4-.5a2 2 0 0 0-1.6-.8h-1.6a2 2 0 0 0-1.6.8l-.4.5A4 4 0 0 1 2 13v-2a5 5 0 0 1 5-5zm-.5 3v1.5H5v1.5h1.5V13H8v-1.5h1.5V10H8V8.5zm9 .5a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm2 2.5a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg>GAMEPAD</button>
   <button data-v="screen"><svg viewBox="0 0 24 24"><path d="M20 3H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h6v2H7v2h10v-2h-3v-2h6a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm0 13H4V5h16z"/></svg>TELA</button>
-  <button data-v="games"><svg viewBox="0 0 24 24"><path d="M7 6h10a5 5 0 0 1 5 5v2a4 4 0 0 1-7.2 2.4l-.4-.5a2 2 0 0 0-1.6-.8h-1.6a2 2 0 0 0-1.6.8l-.4.5A4 4 0 0 1 2 13v-2a5 5 0 0 1 5-5zm-.5 3v1.5H5v1.5h1.5V13H8v-1.5h1.5V10H8V8.5zm9 .5a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm2 2.5a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg>JOGOS</button>
+  <button data-v="games"><svg viewBox="0 0 24 24"><path d="M20.5 11H19V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v4H3.5A1.5 1.5 0 0 0 2 12.5v3A1.5 1.5 0 0 0 3.5 17H5v1a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-1h1.5A1.5 1.5 0 0 0 22 15.5v-3A1.5 1.5 0 0 0 20.5 11zM7 7h10v4H7z"/></svg>JOGOS</button>
   <button data-v="sys"><svg viewBox="0 0 24 24"><path d="M19.4 13a7.6 7.6 0 0 0 .1-1 7.6 7.6 0 0 0-.1-1l2.1-1.7a.5.5 0 0 0 .1-.6l-2-3.5a.5.5 0 0 0-.6-.2l-2.5 1a7.3 7.3 0 0 0-1.7-1l-.4-2.6a.5.5 0 0 0-.5-.4h-4a.5.5 0 0 0-.5.4L9 5a7.3 7.3 0 0 0-1.7 1l-2.5-1a.5.5 0 0 0-.6.2l-2 3.5a.5.5 0 0 0 .1.6L4.5 11a7.6 7.6 0 0 0-.1 1 7.6 7.6 0 0 0 .1 1l-2.1 1.7a.5.5 0 0 0-.1.6l2 3.5c.1.2.4.3.6.2l2.5-1a7.3 7.3 0 0 0 1.7 1l.4 2.6a.5.5 0 0 0 .5.4h4a.5.5 0 0 0 .5-.4l.4-2.6a7.3 7.3 0 0 0 1.7-1l2.5 1c.2.1.5 0 .6-.2l2-3.5a.5.5 0 0 0-.1-.6zM12 15.5A3.5 3.5 0 1 1 15.5 12 3.5 3.5 0 0 1 12 15.5z"/></svg>SISTEMA</button>
 </nav>
 
-<!-- controles do modo tela cheia (paisagem) -->
 <div id="fsctl">
   <div id="ovl"></div>
-  <button id="fsexit" title="sair da tela cheia">⤢</button>
+  <button id="fsexit">⤢</button>
   <div id="fsclick">
     <button id="fs-l">L · CLIQUE</button>
     <button id="fs-r">R · CLIQUE</button>
@@ -544,17 +797,15 @@
 <div id="offbar">SEM CONEXÃO — tentando reconectar…</div>
 <div id="toast"></div>
 
-<!-- PIN -->
 <div class="modal" id="pinmodal">
   <div class="box">
     <h2>PIN DO SERVIDOR</h2>
-    <p>Este servidor exige um PIN. Digite o PIN mostrado na janela do Ally Remote no Ally.</p>
+    <p>Este servidor exige um PIN. Digite o PIN configurado no Ally Remote.</p>
     <input id="pininput" type="tel" inputmode="numeric" maxlength="8" placeholder="••••">
     <div class="row"><button class="btn-red" id="pinok">CONECTAR</button></div>
   </div>
 </div>
 
-<!-- confirmação de energia -->
 <div class="modal" id="pwmodal">
   <div class="box">
     <h2 id="pwtitle">CONFIRMAR</h2>
@@ -572,28 +823,21 @@ const $$ = s => document.querySelectorAll(s);
 let ws = null, needsPin = false, pin = null, retry = 0, retryTimer = null;
 
 const buzz = (ms=12) => { try{ navigator.vibrate && navigator.vibrate(ms); }catch(e){} };
-
 function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('show');
   clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'), 3200); }
-
 function send(o){ if(ws && ws.readyState===1) ws.send(JSON.stringify(o)); }
 
-/* ---------- conexão + reconexão automática ---------- */
+/* ---------- conexão ---------- */
 async function connect(){
   clearTimeout(retryTimer);
   $('#dot').className='';
-  try{
-    const r = await fetch('/needs-pin'); needsPin = (await r.json()).pin;
-  }catch(e){}
+  try{ const r = await fetch('/needs-pin'); needsPin = (await r.json()).pin; }catch(e){}
   if(needsPin && pin===null){ $('#pinmodal').classList.add('show'); $('#pininput').focus(); return; }
   open();
 }
 function open(){
   ws = new WebSocket(`ws://${location.host}/ws`);
-  ws.onopen = () => {
-    if(needsPin) send({t:'auth', pin});
-    else online();
-  };
+  ws.onopen = () => { if(needsPin) send({t:'auth', pin}); else online(); };
   ws.onmessage = ev => handle(JSON.parse(ev.data));
   ws.onclose = () => {
     $('#dot').className='off'; $('#offbar').classList.add('show');
@@ -605,6 +849,7 @@ function online(){
   retry = 0;
   $('#dot').className='on'; $('#offbar').classList.remove('show');
   refreshStatus();
+  send({t:'gp_info'});
 }
 $('#pinok').onclick = () => {
   pin = $('#pininput').value || null;
@@ -614,18 +859,18 @@ $('#pininput').addEventListener('keydown', e=>{ if(e.key==='Enter') $('#pinok').
 document.addEventListener('visibilitychange', ()=>{
   if(!document.hidden && (!ws || ws.readyState>1)) connect();
 });
-// Chamado pelo app Android ao voltar do segundo plano (força reconexão).
 window.__reconnect = ()=>{ if(!ws || ws.readyState>1) connect(); };
-setInterval(()=>send({t:'ping'}), 20000); // keep-alive
+setInterval(()=>send({t:'ping'}), 20000);
 
-/* ---------- mensagens do servidor ---------- */
+/* ---------- mensagens ---------- */
 function handle(m){
   if(m.t==='auth'){
     if(m.ok) online();
     else { pin=null; toast('PIN incorreto'); ws.close(); }
   }
   else if(m.t==='status'){
-    if(m.perf){ setPerfUI(m.perf.mode);
+    if(m.perf){
+      setPerfUI(m.perf.mode);
       $('#c-perf').textContent = ({0:'PERF',1:'TURBO',2:'SILENT'}[m.perf.mode] ?? '?');
       $('#c-perf').classList.toggle('hot', m.perf.mode===1);
     } else $('#c-perf').textContent='N/D';
@@ -635,8 +880,7 @@ function handle(m){
     if(m.memory){
       $('#c-ram').textContent = `${(m.memory.avail_mb/1024).toFixed(1)}G livre`;
       $('#rambar').style.width = `${m.memory.load_pct}%`;
-      $('#ramlabel').textContent =
-        `${m.memory.load_pct}% em uso · ${(m.memory.avail_mb/1024).toFixed(1)} GB livres`;
+      $('#ramlabel').textContent = `${m.memory.load_pct}% em uso · ${(m.memory.avail_mb/1024).toFixed(1)} GB livres`;
     }
     if(m.battery && m.battery.percent!=null){
       const p = m.battery.percent, ch = m.battery.charging;
@@ -651,14 +895,21 @@ function handle(m){
     }
     if(m.screen===false){
       $('#streambtn').disabled = true;
-      $('#mirrorhint').innerHTML = 'Espelhamento indisponível neste servidor.<br>Baixe o AllyRemote.exe mais recente no Ally.';
+      $('#mirrorhint').innerHTML = 'Espelhamento indisponível. Baixe o AllyRemote.exe mais recente.';
     }
     if(m.acpi===false) toast('ACPI indisponível: ' + (m.acpi_error||'rode como admin'));
   }
+  else if(m.t==='gp_info'){
+    const el = $('#gp-mode');
+    if(m.mode==='vigem')       { el.textContent='ViGEmBus ✓ (Xbox virtual)'; el.className=''; }
+    else if(m.mode==='keyboard'){ el.textContent='Modo teclado (ViGEmBus não instalado)'; el.className='warn'; }
+    else                        { el.textContent='Indisponível'; el.className='warn'; }
+  }
+  else if(m.t==='gp_reset'){ toast('Gamepad resetado ✓'); }
   else if(m.t==='brightness'){ if(!m.ok) toast('Brilho: '+(m.error||'indisponível')); }
   else if(m.t==='monitor'){ if(!m.ok) toast('Tela: '+(m.error||'falhou')); }
   else if(m.t==='fan'){
-    if(m.ok) toast(m.action==='max'?'Ventoinha no máximo (Turbo)':m.action==='auto'?'Fan automática':'Fan ~'+m.percent+'%');
+    if(m.ok) toast(m.action==='max'?'Ventoinha no máximo':m.action==='auto'?'Fan automática':'Fan ~'+m.percent+'%');
     else toast('Fan: '+(m.error||'falhou'));
   }
   else if(m.t==='games'){ renderGames(m.games||[]); }
@@ -676,9 +927,7 @@ function handle(m){
     else toast('Falhou: '+m.error);
     refreshStatus();
   }
-  else if(m.t==='led'){
-    toast(m.ok ? 'LED aplicado ✓' : 'LED falhou: '+m.error);
-  }
+  else if(m.t==='led'){ toast(m.ok ? 'LED aplicado ✓' : 'LED falhou: '+m.error); }
   else if(m.t==='pointer'){
     if(m.action==='size') toast(m.ok ? 'Tamanho do ponteiro aplicado ✓' : 'Falhou: '+(m.error||''));
     else if(!m.ok) toast('Falhou: '+(m.error||''));
@@ -694,23 +943,29 @@ function handle(m){
 function refreshStatus(){ send({t:'status'}); }
 setInterval(()=>{ if(ws&&ws.readyState===1) refreshStatus(); }, 8000);
 
-/* ---------- abas ---------- */
+/* ---------- abas de navegação ---------- */
 $$('nav button').forEach(b=> b.onclick = ()=>{
   buzz(8);
   const v = b.dataset.v;
   $$('nav button').forEach(x=>x.classList.toggle('act', x===b));
   $$('.view').forEach(x=>x.classList.toggle('act', x.id==='view-'+v));
-  if(v!=='screen') stopStream(); // não gastar rede fora da aba TELA
+  if(v!=='screen') stopStream();
   if(v==='sys') startStats(); else if(!document.body.classList.contains('fs')) stopStats();
   if(v==='games' && !gamesLoaded){ send({t:'games'}); }
+  if(v==='gp') send({t:'gp_info'});
+});
+
+/* ---------- abas do teclado ---------- */
+$$('.ktabs button').forEach(b=> b.onclick = ()=>{
+  $$('.ktabs button').forEach(x=>x.classList.toggle('act', x===b));
+  $$('.kpage').forEach(x=>x.classList.toggle('act', x.id==='kp-'+b.dataset.kp));
 });
 
 /* ---------- touchpad ---------- */
 const pad = $('#pad'), glow = $('#glow');
 const SENS = 1.6;
 let touches = new Map(), moved = 0, gestureMax = 0, dragging = false, lastTapAt = 0;
-let accX = 0, accY = 0; // acumula frações p/ não perder movimentos lentos
-
+let accX = 0, accY = 0;
 pad.addEventListener('pointerdown', e => {
   pad.setPointerCapture(e.pointerId);
   touches.set(e.pointerId, {x:e.clientX, y:e.clientY});
@@ -720,7 +975,6 @@ pad.addEventListener('pointerdown', e => {
   glow.style.opacity = 1;
   if(touches.size===1){
     moved = 0; gestureMax = 1; accX = 0; accY = 0;
-    // toque duplo -> inicia arrastar (segura o botão esquerdo)
     if(performance.now() - lastTapAt < 280){ dragging = true; send({t:'drag', on:true}); buzz(20); }
   }
 });
@@ -737,8 +991,7 @@ pad.addEventListener('pointermove', e => {
     accX += dx*SENS; accY += dy*SENS;
     const ix = Math.trunc(accX), iy = Math.trunc(accY);
     if(ix || iy){ send({t:'move', dx:ix, dy:iy}); accX -= ix; accY -= iy; }
-  }
-  else if(touches.size===2 && e.isPrimary){ // 2 dedos = scroll
+  } else if(touches.size===2 && e.isPrimary){
     if(Math.abs(dy) >= 4) send({t:'scroll', dy: dy>0 ? -1 : 1});
   }
 });
@@ -755,8 +1008,6 @@ pad.addEventListener('pointerup', e => {
 pad.addEventListener('pointercancel', e => { touches.delete(e.pointerId);
   glow.style.opacity = 0;
   if(dragging && touches.size===0){ dragging=false; send({t:'drag', on:false}); } });
-
-/* barra de scroll dedicada */
 const sc = $('#scroll'); let scY = null, scAcc = 0;
 sc.addEventListener('pointerdown', e => { sc.setPointerCapture(e.pointerId); scY = e.clientY; scAcc = 0; });
 sc.addEventListener('pointermove', e => {
@@ -765,11 +1016,8 @@ sc.addEventListener('pointermove', e => {
   while(Math.abs(scAcc) >= 14){ send({t:'scroll', dy: scAcc>0 ? -1 : 1}); scAcc += scAcc>0 ? -14 : 14; }
 });
 sc.addEventListener('pointerup', ()=> scY=null);
-
 $('#lclick').onclick = ()=>{ send({t:'click', btn:'left'}); buzz(); };
 $('#rclick').onclick = ()=>{ send({t:'click', btn:'right'}); buzz(); };
-
-/* ponteiro: encontrar + tamanho */
 const findPtr = ()=>{ send({t:'pointer', action:'find'}); toast('Olhe para a tela do Ally 👀'); buzz(20); };
 $('#findbtn').onclick = findPtr;
 $('#findbtn2').onclick = findPtr;
@@ -779,33 +1027,60 @@ $$('#ptrsize button').forEach(b=>
     send({t:'pointer', action:'size', value:Number(b.dataset.ps)}); buzz();
   });
 
-/* ---------- teclado ---------- */
+/* ---------- teclado: modo LIVE ---------- */
+let liveMode = false;
+const liveBtn = $('#live-toggle');
+liveBtn.onclick = ()=>{
+  liveMode = !liveMode;
+  liveBtn.classList.toggle('on', liveMode);
+  $('#send').style.opacity = liveMode ? '0.4' : '1';
+  toast(liveMode ? 'Modo LIVE: envia enquanto digita ✓' : 'Modo normal: clique ENVIAR');
+  buzz(12);
+};
+
+let lastSent = '';
+$('#txt').addEventListener('input', e=>{
+  if(!liveMode) return;
+  const cur = e.target.value;
+  // Envia só o caractere novo (diferença)
+  if(cur.length > lastSent.length){
+    const newChars = cur.slice(lastSent.length);
+    send({t:'text', s:newChars});
+  } else if(cur.length < lastSent.length){
+    // backspace
+    const diff = lastSent.length - cur.length;
+    for(let i=0;i<diff;i++) send({t:'key', k:'backspace'});
+  }
+  lastSent = cur;
+});
 $('#send').onclick = ()=>{
   const v = $('#txt').value; if(!v) return;
-  send({t:'text', s:v}); $('#txt').value=''; buzz();
+  send({t:'text', s:v}); $('#txt').value=''; lastSent=''; buzz();
 };
 $('#txt').addEventListener('keydown', e=>{
-  if(e.key==='Enter'){ e.preventDefault();
-    const v=$('#txt').value;
-    if(v){ send({t:'text', s:v}); $('#txt').value=''; }
+  if(e.key==='Enter'){
+    e.preventDefault();
+    if(!liveMode){ const v=$('#txt').value; if(v){ send({t:'text', s:v}); $('#txt').value=''; lastSent=''; } }
     send({t:'key', k:'enter'});
   }
 });
-$$('.keygrid button, .mediarow button').forEach(b=>
-  b.onclick = ()=>{ send({t:'key', k:b.dataset.k}); buzz(); });
+
+/* Botões de tecla: teclado normal + abas */
+function bindKeyButtons(){
+  $$('[data-k]').forEach(b=>
+    b.onclick = ()=>{ send({t:'key', k:b.dataset.k}); buzz(); });
+}
+bindKeyButtons();
 $('#altf4').onclick = ()=>{ send({t:'key', k:'altf4'}); buzz(25); };
 
 /* ---------- sistema ---------- */
 $('#rambtn').onclick = ()=>{ $('#rambtn').disabled=true; send({t:'ram'}); buzz(); };
-
 function setPerfUI(mode){
-  $$('#perfseg button').forEach(b=>
-    b.classList.toggle('act', Number(b.dataset.m)===mode));
+  $$('#perfseg button').forEach(b=>b.classList.toggle('act', Number(b.dataset.m)===mode));
 }
-$$('#perfseg button').forEach(b=>
-  b.onclick = ()=>{ send({t:'perf', mode:Number(b.dataset.m)}); buzz(15); });
+$$('#perfseg button').forEach(b=>b.onclick = ()=>{ send({t:'perf', mode:Number(b.dataset.m)}); buzz(15); });
 
-/* LED: cor + efeito + velocidade */
+/* LED */
 let led = {r:255, g:68, b:56, mode:0, speed:225};
 function sendLed(){ send({t:'led', ...led}); }
 $$('.sw').forEach(b=>{
@@ -836,11 +1111,11 @@ $$('#ledspeed button').forEach(b=>
     led.speed = Number(b.dataset.ls); sendLed(); buzz();
   });
 
-/* energia (com confirmação para desligar/reiniciar) */
+/* Energia */
 const PWTXT = {
-  sleep:   ['SUSPENDER', 'O Ally vai dormir agora. Aperte o botão de energia dele para acordar.'],
-  restart: ['REINICIAR', 'O Ally vai REINICIAR em 5 segundos. Jogos e apps abertos serão fechados.'],
-  shutdown:['DESLIGAR',  'O Ally vai DESLIGAR em 5 segundos. Jogos e apps abertos serão fechados.'],
+  sleep:   ['SUSPENDER', 'O Ally vai dormir agora.'],
+  restart: ['REINICIAR', 'O Ally vai REINICIAR em 5 segundos.'],
+  shutdown:['DESLIGAR',  'O Ally vai DESLIGAR em 5 segundos.'],
 };
 let pwAction = null;
 $$('.pwrow button').forEach(b=>
@@ -859,10 +1134,80 @@ $('#pwyes').onclick = ()=>{
   buzz(30);
 };
 
-/* ---------- TELA: espelhamento ---------- */
+/* ---------- GAMEPAD ---------- */
+function gpBtn(name, pressed){
+  send({t:'gp_btn', btn:name, pressed:pressed});
+  buzz(pressed ? 10 : 0);
+}
+/* Botões digitais (ABXY, dpad, bumpers, etc.) */
+$$('[data-btn]').forEach(b=>{
+  b.addEventListener('pointerdown', e=>{ e.preventDefault(); gpBtn(b.dataset.btn, true); });
+  b.addEventListener('pointerup',   e=>{ e.preventDefault(); gpBtn(b.dataset.btn, false); });
+  b.addEventListener('pointercancel',()=>{ gpBtn(b.dataset.btn, false); });
+});
+
+/* Gatilhos analógicos — pressão contínua */
+$$('.gp-trigger').forEach(btn=>{
+  const side = btn.dataset.side;
+  const bar = btn.querySelector('.tbar');
+  let active = false;
+  btn.addEventListener('pointerdown', e=>{
+    btn.setPointerCapture(e.pointerId);
+    active = true;
+    send({t:'gp_trigger', side, value:1.0});
+    if(bar) bar.style.height='100%';
+    buzz(8);
+  });
+  btn.addEventListener('pointermove', e=>{
+    if(!active) return;
+    const r = btn.getBoundingClientRect();
+    const v = Math.max(0, Math.min(1, (r.bottom - e.clientY) / r.height));
+    send({t:'gp_trigger', side, value:v});
+    if(bar) bar.style.height = (v*100)+'%';
+  });
+  const release = ()=>{
+    if(!active) return; active=false;
+    send({t:'gp_trigger', side, value:0});
+    if(bar) bar.style.height='4px';
+  };
+  btn.addEventListener('pointerup', release);
+  btn.addEventListener('pointercancel', release);
+});
+
+/* Joystick analógico */
+function makeJoystick(stickEl, knobEl, sendFn){
+  const R = 30; // raio máximo do knob em px
+  let pid = null, cx = 0, cy = 0;
+  stickEl.addEventListener('pointerdown', e=>{
+    stickEl.setPointerCapture(e.pointerId);
+    pid = e.pointerId;
+    const r = stickEl.getBoundingClientRect();
+    cx = r.left + r.width/2; cy = r.top + r.height/2;
+    buzz(8);
+  });
+  stickEl.addEventListener('pointermove', e=>{
+    if(e.pointerId !== pid) return;
+    let dx = e.clientX - cx, dy = e.clientY - cy;
+    const dist = Math.sqrt(dx*dx+dy*dy);
+    if(dist > R){ dx = dx/dist*R; dy = dy/dist*R; }
+    knobEl.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+    sendFn(dx/R, -dy/R); // y invertido: cima = positivo
+  });
+  const release = e=>{
+    if(e.pointerId !== pid) return;
+    pid = null;
+    knobEl.style.transform = 'translate(-50%,-50%)';
+    sendFn(0, 0);
+  };
+  stickEl.addEventListener('pointerup', release);
+  stickEl.addEventListener('pointercancel', release);
+}
+makeJoystick($('#ls-stick'), $('#ls-knob'), (x,y)=> send({t:'gp_lstick', x, y}));
+makeJoystick($('#rs-stick'), $('#rs-knob'), (x,y)=> send({t:'gp_rstick', x, y}));
+
+/* ---------- tela / espelhamento ---------- */
 const QSET = { low:{w:800,q:35,fps:12}, med:{w:1100,q:45,fps:15}, high:{w:1366,q:60,fps:20} };
 let stream=null, streaming=false, curURL=null, quality='med', tmode='tap';
-
 function startStream(){
   if(streaming || $('#streambtn').disabled) return;
   const s = QSET[quality];
@@ -875,27 +1220,25 @@ function startStream(){
     const b=$('#streambtn'); b.classList.add('stop'); b.textContent='■ PARAR ESPELHAMENTO';
   };
   stream.onmessage = ev=>{
-    if(typeof ev.data==='string'){ try{toast(JSON.parse(ev.data).error||'erro no stream');}catch(e){} return; }
+    if(typeof ev.data==='string'){ try{toast(JSON.parse(ev.data).error||'erro');}catch(e){} return; }
     const url = URL.createObjectURL(new Blob([ev.data], {type:'image/jpeg'}));
     $('#mirror').src = url;
     if(curURL) URL.revokeObjectURL(curURL);
     curURL = url;
   };
   stream.onclose = ()=>{
-    streaming = false;
-    $('#mirror').classList.remove('on');
+    streaming = false; $('#mirror').classList.remove('on');
     const b=$('#streambtn'); b.classList.remove('stop'); b.textContent='▶ INICIAR ESPELHAMENTO';
   };
   stream.onerror = ()=>{ toast('Falha no espelhamento'); };
 }
 function stopStream(){ if(stream){ try{stream.close();}catch(e){} stream=null; } }
-
 $('#streambtn').onclick = ()=>{ streaming ? stopStream() : startStream(); buzz(); };
 $$('#quality button').forEach(b=>
   b.onclick = ()=>{
     $$('#quality button').forEach(x=>x.classList.toggle('act', x===b));
     quality = b.dataset.q;
-    if(streaming){ stopStream(); setTimeout(startStream, 150); } // reabre com a nova qualidade
+    if(streaming){ stopStream(); setTimeout(startStream, 150); }
     buzz();
   });
 $$('#touchmode button').forEach(b=>
@@ -903,14 +1246,8 @@ $$('#touchmode button').forEach(b=>
     $$('#touchmode button').forEach(x=>x.classList.toggle('act', x===b));
     tmode = b.dataset.tm; buzz();
   });
-
-/* interação sobre a tela espelhada */
-const mir = $('#mirrorwrap');
-let mLast=null, mMoved=0;
-mir.addEventListener('pointerdown', e=>{
-  mir.setPointerCapture(e.pointerId);
-  mLast = {x:e.clientX, y:e.clientY}; mMoved = 0;
-});
+const mir = $('#mirrorwrap'); let mLast=null, mMoved=0;
+mir.addEventListener('pointerdown', e=>{ mir.setPointerCapture(e.pointerId); mLast={x:e.clientX,y:e.clientY}; mMoved=0; });
 mir.addEventListener('pointermove', e=>{
   if(!mLast) return;
   const dx=e.clientX-mLast.x, dy=e.clientY-mLast.y; mLast={x:e.clientX,y:e.clientY};
@@ -921,7 +1258,7 @@ mir.addEventListener('pointerup', e=>{
   const wasTap = mMoved < 12; mLast=null;
   if(tmode==='tap'){
     const r=$('#mirror').getBoundingClientRect();
-    if(r.width>0 && r.height>0){
+    if(r.width>0&&r.height>0){
       let nx=(e.clientX-r.left)/r.width, ny=(e.clientY-r.top)/r.height;
       nx=Math.max(0,Math.min(1,nx)); ny=Math.max(0,Math.min(1,ny));
       send({t:'moveabs', x:nx, y:ny}); send({t:'click', btn:'left'}); buzz(10);
@@ -931,44 +1268,32 @@ mir.addEventListener('pointerup', e=>{
 mir.addEventListener('pointercancel', ()=> mLast=null);
 $('#ms-l').onclick = ()=>{ send({t:'click', btn:'left'}); buzz(); };
 $('#ms-r').onclick = ()=>{ send({t:'click', btn:'right'}); buzz(); };
-
-/* brilho + desligar tela */
 let briDragging = false;
 $('#brislider').addEventListener('input', e=>{ briDragging=true; $('#brival').textContent=e.target.value+'%'; });
-$('#brislider').addEventListener('change', e=>{
-  briDragging=false; send({t:'brightness', value:Number(e.target.value)}); buzz();
-});
+$('#brislider').addEventListener('change', e=>{ briDragging=false; send({t:'brightness', value:Number(e.target.value)}); buzz(); });
 $('#minbtn').onclick = ()=>{
   $('#brislider').value=0; $('#brival').textContent='0%';
-  send({t:'brightness', value:0}); toast('Brilho no mínimo — o jogo continua'); buzz(15);
+  send({t:'brightness', value:0}); toast('Brilho no mínimo'); buzz(15);
 };
-$('#offbtn').onclick = ()=>{
-  send({t:'monitor', action:'off'}); toast('Tela do Ally desligada'); buzz(20);
-};
-
-/* ---------- refrigeração / ventoinha ---------- */
+$('#offbtn').onclick = ()=>{ send({t:'monitor', action:'off'}); toast('Tela do Ally desligada'); buzz(20); };
 $('#fanmax').onclick = ()=>{ send({t:'fan', action:'max'}); buzz(15); };
 $('#fanauto').onclick = ()=>{ send({t:'fan', action:'auto'}); buzz(); };
 let fanDrag=false;
 $('#fanslider').addEventListener('input', e=>{ fanDrag=true; $('#fanval').textContent=e.target.value+'%'; });
-$('#fanslider').addEventListener('change', e=>{
-  fanDrag=false; send({t:'fan', action:'custom', value:Number(e.target.value)}); buzz();
-});
+$('#fanslider').addEventListener('change', e=>{ fanDrag=false; send({t:'fan', action:'custom', value:Number(e.target.value)}); buzz(); });
 
-/* ---------- painel de stats ao vivo ---------- */
+/* ---------- stats ---------- */
 let statsTimer=null;
 function startStats(){ if(statsTimer) return; send({t:'stats'}); statsTimer=setInterval(()=>send({t:'stats'}), 1200); }
 function stopStats(){ if(statsTimer){ clearInterval(statsTimer); statsTimer=null; } }
 function updateStats(m){
-  const set=(id,val,hot)=>{ const e=$(id); if(!e) return; e.textContent=val;
-    e.classList.toggle('hot', !!hot); };
+  const set=(id,val,hot)=>{ const e=$(id); if(!e) return; e.textContent=val; e.classList.toggle('hot', !!hot); };
   const temp = m.cpu_temp_c;
   set('#s-cpu', m.cpu_pct!=null ? Math.round(m.cpu_pct) : '—', m.cpu_pct>=85);
   set('#s-temp', temp!=null ? Math.round(temp) : '—', temp!=null && temp>=85);
   set('#s-fan', m.fan_rpm!=null ? m.fan_rpm : '—');
   set('#s-ram', m.mem_load!=null ? m.mem_load : '—', m.mem_load>=90);
   set('#s-bat', (m.battery&&m.battery.percent!=null) ? m.battery.percent+'%'+(m.battery.charging?'⚡':'') : '—');
-  // overlay da tela cheia
   const ovl=$('#ovl');
   if(document.body.classList.contains('fs')){
     ovl.innerHTML =
@@ -980,36 +1305,19 @@ function updateStats(m){
   }
 }
 
-/* ---------- tela cheia (paisagem) do espelhamento ---------- */
+/* ---------- fullscreen ---------- */
 function enterFS(){
   if(!streaming) startStream();
-  document.body.classList.add('fs');
-  startStats();
-  if(window.AllyNative && AllyNative.enterFullscreen){
-    try{ AllyNative.enterFullscreen(); }catch(e){}
-  } else { // navegador / PWA: usa a API de tela cheia + trava em paisagem
-    try{
-      const el = document.documentElement;
-      const p = el.requestFullscreen ? el.requestFullscreen() : null;
-      Promise.resolve(p).then(()=>{
-        try{
-          const l = screen.orientation && screen.orientation.lock && screen.orientation.lock('landscape');
-          if(l && l.catch) l.catch(()=>{});
-        }catch(e){}
-      }).catch(()=>{});
-    }catch(e){}
-  }
+  document.body.classList.add('fs'); startStats();
+  if(window.AllyNative && AllyNative.enterFullscreen){ try{ AllyNative.enterFullscreen(); }catch(e){} }
+  else { try{ const el=document.documentElement; const p=el.requestFullscreen?el.requestFullscreen():null; Promise.resolve(p).then(()=>{ try{ const l=screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape'); if(l&&l.catch)l.catch(()=>{}); }catch(e){} }).catch(()=>{}); }catch(e){} }
   buzz(15);
 }
 function exitFS(){
   document.body.classList.remove('fs');
   if(!$('#view-sys').classList.contains('act')) stopStats();
-  if(window.AllyNative && AllyNative.exitFullscreen){
-    try{ AllyNative.exitFullscreen(); }catch(e){}
-  } else {
-    try{ screen.orientation.unlock(); }catch(e){}
-    try{ if(document.fullscreenElement) document.exitFullscreen(); }catch(e){}
-  }
+  if(window.AllyNative && AllyNative.exitFullscreen){ try{ AllyNative.exitFullscreen(); }catch(e){} }
+  else { try{ screen.orientation.unlock(); }catch(e){} try{ if(document.fullscreenElement) document.exitFullscreen(); }catch(e){} }
   buzz();
 }
 $('#fsbtn').onclick = enterFS;
@@ -1020,8 +1328,7 @@ $('#fs-r').onclick = ()=>{ send({t:'click', btn:'right'}); buzz(); };
 /* ---------- jogos ---------- */
 let gamesLoaded=false, allGames=[];
 function renderGames(list){
-  gamesLoaded = true; allGames = list;
-  filterGames($('#gamesearch').value || '');
+  gamesLoaded = true; allGames = list; filterGames($('#gamesearch').value || '');
 }
 function filterGames(q){
   q = q.trim().toLowerCase();
@@ -1045,7 +1352,6 @@ $('#gamesearch').addEventListener('input', e=> filterGames(e.target.value));
 
 /* PWA */
 if('serviceWorker' in navigator) navigator.serviceWorker.register('/static/sw.js');
-
 connect();
 </script>
 </body>
