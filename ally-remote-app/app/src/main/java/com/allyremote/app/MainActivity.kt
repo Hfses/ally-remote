@@ -6,8 +6,13 @@ import android.content.Context
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
-import android.net.wifi.WifiManager
+import android.net.ConnectivityManager
+import android.net.LinkAddress
+import android.net.Network
+import android.os.Build
 import android.os.Bundle
+import android.view.WindowInsets
+import android.view.WindowInsetsController
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.style.ForegroundColorSpan
@@ -343,12 +348,26 @@ class MainActivity : Activity() {
         }
     }
 
-    @Suppress("DEPRECATION")
+    /**
+     * Descobre o prefixo /24 da rede Wi-Fi atual usando ConnectivityManager +
+     * LinkProperties (API 31+ friendly). WifiManager.connectionInfo.ipAddress
+     * está depreciado desde a API 31 e pode não ser mais confiável.
+     */
     private fun subnetPrefix(): String? {
-        val wm = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
-        val ip = wm.connectionInfo.ipAddress
-        if (ip == 0) return null
-        return "${ip and 0xff}.${(ip shr 8) and 0xff}.${(ip shr 16) and 0xff}"
+        return try {
+            val cm = applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE)
+                as ConnectivityManager
+            val network: Network = cm.activeNetwork ?: return null
+            val linkProperties = cm.getLinkProperties(network) ?: return null
+            val ipv4: LinkAddress = linkProperties.linkAddresses.firstOrNull { la ->
+                la.address is java.net.Inet4Address
+            } ?: return null
+            val parts = ipv4.address.hostAddress?.split(".") ?: return null
+            if (parts.size != 4) return null
+            "${parts[0]}.${parts[1]}.${parts[2]}"
+        } catch (e: Exception) {
+            null
+        }
     }
 
     @Deprecated("Deprecated in Java")
@@ -366,22 +385,41 @@ class MainActivity : Activity() {
         fun exitFullscreen() { runOnUiThread { setImmersiveLandscape(false) } }
     }
 
-    @Suppress("DEPRECATION")
+    /**
+     * Entra/sai do modo imersivo (fullscreen, sem barra de status/navegação)
+     * em paisagem. Usa WindowInsetsController na API 30+ (Android 11+), já
+     * que systemUiVisibility foi depreciado e pode deixar de funcionar em
+     * versões futuras do Android; mantém o fallback antigo só para API < 30.
+     */
     private fun setImmersiveLandscape(on: Boolean) {
         requestedOrientation = if (on)
             android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
         else
             android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-        if (on) {
-            window.decorView.systemUiVisibility = (
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (on) {
+                window.setDecorFitsSystemWindows(false)
+                window.insetsController?.let { controller ->
+                    controller.hide(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
+                    controller.systemBarsBehavior =
+                        WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                }
+            } else {
+                window.setDecorFitsSystemWindows(true)
+                window.insetsController?.show(
+                    WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
+            }
+        } else {
+            @Suppress("DEPRECATION")
+            window.decorView.systemUiVisibility = if (on) (
                 View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
                 or View.SYSTEM_UI_FLAG_FULLSCREEN
                 or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                 or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                 or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                 or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION)
-        } else {
-            window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_VISIBLE
+            else View.SYSTEM_UI_FLAG_VISIBLE
         }
     }
 
