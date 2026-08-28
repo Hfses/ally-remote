@@ -143,9 +143,11 @@
 
   /* ===== gamepad ===== */
   #view-gp{gap:8px}
-  #gp-status{font:10px var(--mono);color:var(--dim);text-align:center;padding:4px}
-  #gp-status em{font-style:normal;color:var(--ok)}
-  #gp-status em.warn{color:var(--warn)}
+  #gp-status{font:10px var(--mono);color:var(--dim);text-align:center;padding:4px;
+    display:flex;align-items:center;justify-content:center;gap:6px}
+  #gp-mode{font:800 10px var(--mono);letter-spacing:.06em;padding:3px 9px;border-radius:99px;
+    background:rgba(61,220,132,.12);border:1px solid rgba(61,220,132,.35);color:var(--ok)}
+  #gp-mode.warn{background:rgba(255,176,32,.12);border-color:rgba(255,176,32,.35);color:var(--warn)}
   #gp-sens{display:flex;align-items:center;gap:8px;font:10px var(--mono);color:var(--dim);padding:0 4px}
   #gp-sens span:first-child{white-space:nowrap;letter-spacing:.06em}
   #gp-sens #gp-sens-val{min-width:32px;text-align:right;color:var(--txt)}
@@ -387,6 +389,13 @@
   .modal input:focus{border-color:var(--red)}
   .modal .row{display:flex;gap:9px}
   .modal .row button{flex:1;padding:13px 0;border-radius:10px;font:700 12px var(--mono);border:0}
+  #remaplist{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:14px 0}
+  #remaplist button{padding:11px 4px;border-radius:9px;border:1px solid var(--line);
+    background:var(--panel2);color:var(--txt);font:700 11px var(--mono)}
+  #remaplist button.sel{border-color:var(--red);color:var(--red2);background:rgba(255,68,56,.08)}
+  [data-btn]{position:relative}
+  [data-btn] .remap-tag{position:absolute;top:2px;right:4px;font:700 8px var(--mono);
+    color:var(--red2);pointer-events:none;letter-spacing:.04em}
   .btn-ghost{background:var(--panel2);color:var(--dim);border:1px solid var(--line) !important}
   .btn-red{background:var(--grad);color:#fff}
   #offbar{position:fixed;top:calc(52px + var(--sat));left:50%;transform:translateX(-50%);
@@ -831,6 +840,18 @@
   </div>
 </div>
 
+<div class="modal" id="remapmodal">
+  <div class="box">
+    <h2>REMAPEAR BOTÃO</h2>
+    <p id="remaptext">Escolha o que este botão deve enviar.</p>
+    <div id="remaplist"></div>
+    <div class="row">
+      <button class="btn-ghost" id="remapdefault">PADRÃO</button>
+      <button class="btn-ghost" id="remapcancel">CANCELAR</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
@@ -1173,15 +1194,94 @@ function gpVibe(name, pressed){
   if(name === 'guide'){ try{ navigator.vibrate && navigator.vibrate([14, 30, 14]); }catch(e){} return; }
   buzz(GP_VIBE[name] ?? 10);
 }
-function gpBtn(name, pressed){
-  send({t:'gp_btn', btn:name, pressed:pressed});
-  gpVibe(name, pressed);
+/* Remapeamento de botões: segure um botão por 1s para abrir um seletor e
+   trocar qual gp_btn ele realmente envia. Mapeamento salvo no client-side
+   (localStorage), sobrevive entre sessões neste aparelho/navegador. */
+const GP_REMAPPABLE = [
+  {id:'a',label:'A'}, {id:'b',label:'B'}, {id:'x',label:'X'}, {id:'y',label:'Y'},
+  {id:'lb',label:'LB'}, {id:'rb',label:'RB'},
+  {id:'back',label:'BACK'}, {id:'start',label:'START'}, {id:'guide',label:'GUIDE'},
+  {id:'dup',label:'D-PAD ▲'}, {id:'ddown',label:'D-PAD ▼'},
+  {id:'dleft',label:'D-PAD ◀'}, {id:'dright',label:'D-PAD ▶'},
+  {id:'l3',label:'L3'}, {id:'r3',label:'R3'},
+];
+let gpRemap = {};
+try{ gpRemap = JSON.parse(localStorage.getItem('ar_gp_remap') || '{}') || {}; }catch(e){ gpRemap = {}; }
+function gpEffective(name){ return gpRemap[name] || name; }
+function gpSaveRemap(){ localStorage.setItem('ar_gp_remap', JSON.stringify(gpRemap)); }
+function gpApplyTags(){
+  $$('[data-btn]').forEach(el=>{
+    const orig = el.dataset.btn;
+    const mapped = gpRemap[orig];
+    let tag = el.querySelector('.remap-tag');
+    if(mapped && mapped !== orig){
+      if(!tag){ tag = document.createElement('span'); tag.className='remap-tag'; el.appendChild(tag); }
+      tag.textContent = '→' + mapped.toUpperCase();
+    } else if(tag){ tag.remove(); }
+  });
 }
-/* Botões digitais (ABXY, dpad, bumpers, etc.) */
+let remapTarget = null; // data-btn original do botão sendo remapeado agora
+function openRemapPicker(origName){
+  remapTarget = origName;
+  const current = gpEffective(origName);
+  const list = $('#remaplist'); list.innerHTML = '';
+  GP_REMAPPABLE.forEach(opt=>{
+    const b = document.createElement('button');
+    b.textContent = opt.label;
+    b.classList.toggle('sel', opt.id === current);
+    b.onclick = ()=>{
+      gpRemap[remapTarget] = opt.id;
+      gpSaveRemap(); gpApplyTags();
+      $('#remapmodal').classList.remove('show');
+      buzz(15);
+    };
+    list.appendChild(b);
+  });
+  $('#remaptext').textContent = 'Este botão vai enviar:';
+  $('#remapmodal').classList.add('show');
+}
+$('#remapdefault').onclick = ()=>{
+  if(remapTarget){ delete gpRemap[remapTarget]; gpSaveRemap(); gpApplyTags(); }
+  $('#remapmodal').classList.remove('show');
+};
+$('#remapcancel').onclick = ()=> $('#remapmodal').classList.remove('show');
+gpApplyTags();
+
+function gpBtn(name, pressed){
+  send({t:'gp_btn', btn:gpEffective(name), pressed:pressed});
+  gpVibe(gpEffective(name), pressed);
+}
+/* Botões digitais (ABXY, dpad, bumpers, etc.) — toque normal = pressiona;
+   toque longo (700ms) sem mover = abre o seletor de remapeamento. */
+const GP_HOLD_MS = 700;
 $$('[data-btn]').forEach(b=>{
-  b.addEventListener('pointerdown', e=>{ e.preventDefault(); gpBtn(b.dataset.btn, true); });
-  b.addEventListener('pointerup',   e=>{ e.preventDefault(); gpBtn(b.dataset.btn, false); });
-  b.addEventListener('pointercancel',()=>{ gpBtn(b.dataset.btn, false); });
+  let holdTimer = null, opened = false, startX = 0, startY = 0;
+  b.addEventListener('pointerdown', e=>{
+    e.preventDefault();
+    opened = false;
+    startX = e.clientX; startY = e.clientY;
+    gpBtn(b.dataset.btn, true);
+    holdTimer = setTimeout(()=>{
+      opened = true;
+      gpBtn(b.dataset.btn, false); // solta pra não ficar "preso" enquanto o modal está aberto
+      openRemapPicker(b.dataset.btn);
+    }, GP_HOLD_MS);
+  });
+  b.addEventListener('pointermove', e=>{
+    if(!holdTimer) return;
+    if(Math.abs(e.clientX-startX) > 12 || Math.abs(e.clientY-startY) > 12){
+      clearTimeout(holdTimer); holdTimer = null;
+    }
+  });
+  b.addEventListener('pointerup', e=>{
+    e.preventDefault();
+    clearTimeout(holdTimer); holdTimer = null;
+    if(!opened) gpBtn(b.dataset.btn, false);
+  });
+  b.addEventListener('pointercancel',()=>{
+    clearTimeout(holdTimer); holdTimer = null;
+    if(!opened) gpBtn(b.dataset.btn, false);
+  });
 });
 
 /* Gatilhos analógicos — pressão contínua */
