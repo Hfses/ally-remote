@@ -146,6 +146,9 @@
   #gp-status{font:10px var(--mono);color:var(--dim);text-align:center;padding:4px}
   #gp-status em{font-style:normal;color:var(--ok)}
   #gp-status em.warn{color:var(--warn)}
+  #gp-sens{display:flex;align-items:center;gap:8px;font:10px var(--mono);color:var(--dim);padding:0 4px}
+  #gp-sens span:first-child{white-space:nowrap;letter-spacing:.06em}
+  #gp-sens #gp-sens-val{min-width:32px;text-align:right;color:var(--txt)}
   .gp-layout{display:flex;flex-direction:column;gap:8px;flex:1}
   /* Triggers */
   .gp-triggers{display:flex;gap:8px;height:44px}
@@ -312,8 +315,14 @@
   #fsbtn{flex:none;padding:0 16px;border:1px solid var(--line);border-radius:12px;
     background:var(--panel2);color:var(--txt);font:800 16px var(--mono)}
   #fsbtn:active{border-color:var(--red)}
+  /* Modo paisagem imersivo do GAMEPAD (landscape automático, igual espelhamento) */
+  body.fs-gp{overflow:hidden}
+  body.fs-gp header, body.fs-gp nav, body.fs-gp main > .view:not(#view-gp){display:none}
+  body.fs-gp main{padding:10px}
+  body.fs-gp #gp-status{padding-top:calc(4px + var(--sat))}
   #fsctl{position:fixed;inset:0;z-index:41;display:none;pointer-events:none}
-  body.fs #fsctl{display:block}
+  body.fs #fsctl, body.fs-gp #fsctl{display:block}
+  body.fs-gp #fsclick{display:none}
   #fsexit{position:absolute;top:10px;right:10px;pointer-events:auto;
     width:42px;height:42px;border-radius:12px;border:1px solid var(--line);
     background:rgba(19,21,27,.7);color:var(--txt);font:800 16px var(--mono)}
@@ -574,6 +583,11 @@
   <!-- ============ GAMEPAD ============ -->
   <section class="view" id="view-gp">
     <div id="gp-status">Verificando gamepad… <em id="gp-mode">—</em></div>
+    <div id="gp-sens">
+      <span>SENSIBILIDADE</span>
+      <input type="range" id="gp-sens-slider" min="0.5" max="2" step="0.1" value="1">
+      <span id="gp-sens-val">1.0×</span>
+    </div>
     <div class="gp-layout">
       <!-- Gatilhos -->
       <div class="gp-triggers">
@@ -836,10 +850,19 @@ async function connect(){
   open();
 }
 function open(){
-  ws = new WebSocket(`ws://${location.host}/ws`);
-  ws.onopen = () => { if(needsPin) send({t:'auth', pin}); else online(); };
-  ws.onmessage = ev => handle(JSON.parse(ev.data));
-  ws.onclose = () => {
+  // Fecha e "desliga" qualquer WebSocket anterior antes de abrir um novo, para
+  // não deixar conexões fantasmas rodando em paralelo (ex.: retry automático
+  // colidindo com um reconnect manual do app Android ao voltar do background).
+  if(ws){
+    ws.onopen = ws.onmessage = ws.onclose = ws.onerror = null;
+    try{ if(ws.readyState===0 || ws.readyState===1) ws.close(); }catch(e){}
+  }
+  const socket = new WebSocket(`ws://${location.host}/ws`);
+  ws = socket;
+  socket.onopen = () => { if(socket!==ws) return; if(needsPin) send({t:'auth', pin}); else online(); };
+  socket.onmessage = ev => { if(socket!==ws) return; handle(JSON.parse(ev.data)); };
+  socket.onclose = () => {
+    if(socket!==ws) return; // conexão antiga já substituída: não reagenda retry
     $('#dot').className='off'; $('#offbar').classList.add('show');
     const wait = Math.min(1000 * Math.pow(1.7, retry++), 12000);
     retryTimer = setTimeout(connect, wait);
@@ -950,9 +973,10 @@ $$('nav button').forEach(b=> b.onclick = ()=>{
   $$('nav button').forEach(x=>x.classList.toggle('act', x===b));
   $$('.view').forEach(x=>x.classList.toggle('act', x.id==='view-'+v));
   if(v!=='screen') stopStream();
-  if(v==='sys') startStats(); else if(!document.body.classList.contains('fs')) stopStats();
+  if(v==='sys') startStats();
+  else if(!document.body.classList.contains('fs') && !document.body.classList.contains('fs-gp')) stopStats();
   if(v==='games' && !gamesLoaded){ send({t:'games'}); }
-  if(v==='gp') send({t:'gp_info'});
+  if(v==='gp'){ send({t:'gp_info'}); enterGpFS(); }
 });
 
 /* ---------- abas do teclado ---------- */
@@ -1135,9 +1159,23 @@ $('#pwyes').onclick = ()=>{
 };
 
 /* ---------- GAMEPAD ---------- */
+/* Vibração de feedback diferenciada por tipo de botão: ABXY curto, LB/RB
+   médio, gatilho ao fundo longo, guide duplo (dois pulsos). */
+const GP_VIBE = {
+  a:10, b:10, x:10, y:10,          // ABXY: curto
+  lb:18, rb:18,                    // bumpers: médio
+  dup:8, ddown:8, dleft:8, dright:8, // d-pad: curto/leve
+  back:12, start:12,
+  l3:15, r3:15,
+};
+function gpVibe(name, pressed){
+  if(!pressed) return; // só vibra ao pressionar, não ao soltar
+  if(name === 'guide'){ try{ navigator.vibrate && navigator.vibrate([14, 30, 14]); }catch(e){} return; }
+  buzz(GP_VIBE[name] ?? 10);
+}
 function gpBtn(name, pressed){
   send({t:'gp_btn', btn:name, pressed:pressed});
-  buzz(pressed ? 10 : 0);
+  gpVibe(name, pressed);
 }
 /* Botões digitais (ABXY, dpad, bumpers, etc.) */
 $$('[data-btn]').forEach(b=>{
@@ -1147,13 +1185,16 @@ $$('[data-btn]').forEach(b=>{
 });
 
 /* Gatilhos analógicos — pressão contínua */
+const TRIGGER_DEADZONE = 0.02; // ignora variações menores que isso p/ não floodar o WebSocket
 $$('.gp-trigger').forEach(btn=>{
   const side = btn.dataset.side;
   const bar = btn.querySelector('.tbar');
   let active = false;
+  let lastSent = -1; // força o primeiro envio
   btn.addEventListener('pointerdown', e=>{
     btn.setPointerCapture(e.pointerId);
     active = true;
+    lastSent = 1.0;
     send({t:'gp_trigger', side, value:1.0});
     if(bar) bar.style.height='100%';
     buzz(8);
@@ -1162,11 +1203,15 @@ $$('.gp-trigger').forEach(btn=>{
     if(!active) return;
     const r = btn.getBoundingClientRect();
     const v = Math.max(0, Math.min(1, (r.bottom - e.clientY) / r.height));
+    if(bar) bar.style.height = (v*100)+'%'; // visual sempre atualiza, suave
+    if(Math.abs(v - lastSent) < TRIGGER_DEADZONE) return; // dead zone: evita flood perto do mesmo valor
+    if(v >= 0.98 && lastSent < 0.98) buzz(24); // gatilho ao fundo: vibração longa
+    lastSent = v;
     send({t:'gp_trigger', side, value:v});
-    if(bar) bar.style.height = (v*100)+'%';
   });
   const release = ()=>{
     if(!active) return; active=false;
+    lastSent = 0;
     send({t:'gp_trigger', side, value:0});
     if(bar) bar.style.height='4px';
   };
@@ -1175,15 +1220,25 @@ $$('.gp-trigger').forEach(btn=>{
 });
 
 /* Joystick analógico */
-function makeJoystick(stickEl, knobEl, sendFn){
-  const R = 30; // raio máximo do knob em px
-  let pid = null, cx = 0, cy = 0;
+function makeJoystick(stickEl, knobEl, sendFn, onPress){
+  // Raio calculado a partir do tamanho real do elemento (getBoundingClientRect),
+  // não mais um valor fixo em px — assim fica proporcional em qualquer DPI/tela.
+  let pid = null, cx = 0, cy = 0, R = 30;
+  let pressTimer = null, pressed = false;
+  const LONG_PRESS_MS = 500; // toque longo = pressionar o stick (L3/R3)
+
   stickEl.addEventListener('pointerdown', e=>{
     stickEl.setPointerCapture(e.pointerId);
     pid = e.pointerId;
     const r = stickEl.getBoundingClientRect();
     cx = r.left + r.width/2; cy = r.top + r.height/2;
+    R = Math.max(1, r.width/2); // raio real do elemento
     buzz(8);
+    pressed = false;
+    if(onPress){
+      clearTimeout(pressTimer);
+      pressTimer = setTimeout(()=>{ pressed = true; onPress(true); buzz(15); }, LONG_PRESS_MS);
+    }
   });
   stickEl.addEventListener('pointermove', e=>{
     if(e.pointerId !== pid) return;
@@ -1192,18 +1247,41 @@ function makeJoystick(stickEl, knobEl, sendFn){
     if(dist > R){ dx = dx/dist*R; dy = dy/dist*R; }
     knobEl.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
     sendFn(dx/R, -dy/R); // y invertido: cima = positivo
+    // Se o dedo se mover bastante, cancela o toque longo (não é intenção de L3/R3)
+    if(pressTimer && dist > 10){ clearTimeout(pressTimer); pressTimer = null; }
   });
   const release = e=>{
     if(e.pointerId !== pid) return;
     pid = null;
+    clearTimeout(pressTimer); pressTimer = null;
     knobEl.style.transform = 'translate(-50%,-50%)';
     sendFn(0, 0);
+    if(pressed && onPress){ onPress(false); }
+    pressed = false;
   };
   stickEl.addEventListener('pointerup', release);
   stickEl.addEventListener('pointercancel', release);
 }
-makeJoystick($('#ls-stick'), $('#ls-knob'), (x,y)=> send({t:'gp_lstick', x, y}));
-makeJoystick($('#rs-stick'), $('#rs-knob'), (x,y)=> send({t:'gp_rstick', x, y}));
+makeJoystick($('#ls-stick'), $('#ls-knob'), (x,y)=> send({t:'gp_lstick', x:clampAxis(x*gpSens), y:clampAxis(y*gpSens)}),
+  (down)=> gpBtn('L3', down));
+makeJoystick($('#rs-stick'), $('#rs-knob'), (x,y)=> send({t:'gp_rstick', x:clampAxis(x*gpSens), y:clampAxis(y*gpSens)}),
+  (down)=> gpBtn('R3', down));
+
+/* Sensibilidade dos sticks: 0.5x a 2.0x, aplicada antes de enviar gp_lstick/gp_rstick.
+   Fica salva no localStorage e sobrevive entre sessões. */
+let gpSens = parseFloat(localStorage.getItem('ar_gp_sens') || '1') || 1;
+function clampAxis(v){ return Math.max(-1, Math.min(1, v)); }
+const gpSensSlider = $('#gp-sens-slider'), gpSensVal = $('#gp-sens-val');
+gpSensSlider.value = gpSens;
+gpSensVal.textContent = gpSens.toFixed(1)+'×';
+gpSensSlider.addEventListener('input', e=>{
+  gpSens = parseFloat(e.target.value) || 1;
+  gpSensVal.textContent = gpSens.toFixed(1)+'×';
+});
+gpSensSlider.addEventListener('change', ()=>{
+  localStorage.setItem('ar_gp_sens', String(gpSens));
+  buzz();
+});
 
 /* ---------- tela / espelhamento ---------- */
 const QSET = { low:{w:800,q:35,fps:12}, med:{w:1100,q:45,fps:15}, high:{w:1366,q:60,fps:20} };
@@ -1295,7 +1373,7 @@ function updateStats(m){
   set('#s-ram', m.mem_load!=null ? m.mem_load : '—', m.mem_load>=90);
   set('#s-bat', (m.battery&&m.battery.percent!=null) ? m.battery.percent+'%'+(m.battery.charging?'⚡':'') : '—');
   const ovl=$('#ovl');
-  if(document.body.classList.contains('fs')){
+  if(document.body.classList.contains('fs') || document.body.classList.contains('fs-gp')){
     ovl.innerHTML =
       `<div class="o${temp>=85?' hot':''}">TEMP <b>${temp!=null?Math.round(temp)+'°':'—'}</b></div>`+
       `<div class="o">CPU <b>${m.cpu_pct!=null?Math.round(m.cpu_pct)+'%':'—'}</b></div>`+
@@ -1321,9 +1399,25 @@ function exitFS(){
   buzz();
 }
 $('#fsbtn').onclick = enterFS;
-$('#fsexit').onclick = exitFS;
+$('#fsexit').onclick = ()=>{ document.body.classList.contains('fs-gp') ? exitGpFS() : exitFS(); };
 $('#fs-l').onclick = ()=>{ send({t:'click', btn:'left'}); buzz(); };
 $('#fs-r').onclick = ()=>{ send({t:'click', btn:'right'}); buzz(); };
+
+/* ---------- paisagem automática do GAMEPAD ---------- */
+function enterGpFS(){
+  document.body.classList.add('fs-gp'); startStats();
+  if(window.AllyNative && AllyNative.enterFullscreen){ try{ AllyNative.enterFullscreen(); }catch(e){} }
+  else { try{ const el=document.documentElement; const p=el.requestFullscreen?el.requestFullscreen():null;
+    Promise.resolve(p).then(()=>{ try{ const l=screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape');
+      if(l&&l.catch)l.catch(()=>{}); }catch(e){} }).catch(()=>{}); }catch(e){} }
+}
+function exitGpFS(){
+  document.body.classList.remove('fs-gp');
+  if(!$('#view-sys').classList.contains('act')) stopStats();
+  if(window.AllyNative && AllyNative.exitFullscreen){ try{ AllyNative.exitFullscreen(); }catch(e){} }
+  else { try{ screen.orientation.unlock(); }catch(e){} try{ if(document.fullscreenElement) document.exitFullscreen(); }catch(e){} }
+  buzz();
+}
 
 /* ---------- jogos ---------- */
 let gamesLoaded=false, allGames=[];
