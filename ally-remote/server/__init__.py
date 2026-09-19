@@ -9,4 +9,4 @@ O ponto de entrada continua `python server.py` (shim na raiz) — o protocolo
 WebSocket/HTTP não mudou.
 """
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
