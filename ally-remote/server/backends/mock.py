@@ -149,6 +149,7 @@ class MockBackend(Backend):
                 "mirror": self._screen_available(),  # quadro de teste funciona
                 "h264": False,
                 "telemetry": True,
+                "clipboard": True,
                 "discovery_udp": True,
             }
         return dict(self._caps)
