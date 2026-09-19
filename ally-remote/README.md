@@ -9,6 +9,7 @@ Controle o **ROG Ally (Z1 / Z1 Extreme)** pelo celular, na sua rede Wi-Fi:
 | 🔊 **Mídia / Volume** | Play/pause, faixa anterior/próxima, volume +/−, mudo |
 | 📋 **Clipboard compartilhado** | Copia texto Android ↔ Windows e pode colar direto no Ally |
 | 📶 **PING em tempo real** | Mostra a latência entre celular e Ally no cabeçalho |
+| 🎮 **Saída clara do Gamepad** | Botão SAIR GAMEPAD retorna ao Mouse e restaura a orientação vertical |
 | ⭐ **Jogos favoritos** | Favoritos ficam fixados no topo da lista de jogos |
 | ⚡ **Wake-on-LAN** | O APK pode enviar o magic packet para acordar o Ally pela rede |
 | 🧹 **Liberar RAM** | Apara working sets + limpa a standby list (como RAMMap/ISLC) |
@@ -74,6 +75,7 @@ na primeira execução.
 3. O IP fica salvo: nas próximas vezes o app conecta direto.
 4. Ao **minimizar e voltar**, o app **reconecta sozinho** (não trava mais).
 5. Opcional: informe o **MAC do Ally** na tela inicial. O botão **ACORDAR ALLY** envia Wake-on-LAN para a rede local. O recurso só funciona se Wake-on-LAN estiver habilitado/suportado pelo adaptador, Windows/BIOS e estado de energia usado.
+6. **Desconectar / Trocar Ally** fica em **Sistema → Configurações do App**, sem botão flutuante sobre os controles.
    Para trocar de Ally, toque no **⟲** no canto superior direito ou no botão
    **voltar** do Android — volta à tela de conexão.
 
