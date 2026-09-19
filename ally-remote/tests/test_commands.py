@@ -9,6 +9,7 @@ from server import protocol
 # Conjunto EXATO de comandos do protocolo (originais + aditivos da FASE 1).
 EXPECTED_COMMANDS = {
     "move", "moveabs", "scroll", "click", "drag", "text", "key",
+    "key_state", "reset_input",
     "ram", "perf", "led", "power", "pointer", "brightness", "monitor",
     "fan", "games", "launch", "stats", "status", "ping",
     # FASE 1 (aditivos — clientes antigos os ignoram)
@@ -102,6 +103,9 @@ def test_no_response_commands_do_not_crash(client):
         ws.send_json({"t": "text", "s": "olá"})
         ws.send_json({"t": "key", "k": "enter"})
         ws.send_json({"t": "key", "k": "altf4"})
+        ws.send_json({"t": "key_state", "k": "w", "pressed": True})
+        ws.send_json({"t": "key_state", "k": "w", "pressed": False})
+        ws.send_json({"t": "reset_input"})
         ws.send_json({"t": "comando-desconhecido"})  # ignorado silenciosamente
         ws.send_json({"t": "ping"})
         assert ws.receive_json() == {"t": "pong"}

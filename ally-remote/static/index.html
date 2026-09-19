@@ -123,6 +123,8 @@
   }
   .keygrid button:active,.keygrid4 button:active,.keygrid6 button:active,.mediarow button:active{
     color:var(--red2);border-color:var(--red);transform:scale(.96)}
+  #kp-game button.held{color:#fff;border-color:var(--red);background:rgba(255,68,56,.28);
+    box-shadow:0 0 0 2px rgba(255,68,56,.12) inset}
   .keygrid button.wide,.keygrid4 button.wide{grid-column:span 2}
   .keygrid button.wide3{grid-column:span 3}
   .mediarow{display:grid;grid-template-columns:repeat(6,1fr);gap:7px}
@@ -148,9 +150,9 @@
   #gp-mode{font:800 10px var(--mono);letter-spacing:.06em;padding:3px 9px;border-radius:99px;
     background:rgba(61,220,132,.12);border:1px solid rgba(61,220,132,.35);color:var(--ok)}
   #gp-mode.warn{background:rgba(255,176,32,.12);border-color:rgba(255,176,32,.35);color:var(--warn)}
-  #gp-sens{display:flex;align-items:center;gap:8px;font:10px var(--mono);color:var(--dim);padding:0 4px}
-  #gp-sens span:first-child{white-space:nowrap;letter-spacing:.06em}
-  #gp-sens #gp-sens-val{min-width:32px;text-align:right;color:var(--txt)}
+  .sensline{display:flex;align-items:center;gap:8px;font:10px var(--mono);color:var(--dim);padding:0 4px}
+  .sensline span:first-child{white-space:nowrap;letter-spacing:.06em}
+  .sensline .sensval{min-width:38px;text-align:right;color:var(--txt)}
   .gp-layout{display:flex;flex-direction:column;gap:8px;flex:1}
   /* Triggers */
   .gp-triggers{display:flex;gap:8px;height:44px}
@@ -436,6 +438,15 @@
       <button id="rclick">R · CLIQUE</button>
       <button id="findbtn">📍 ACHAR</button>
     </div>
+    <div class="sensline" id="mouse-sens">
+      <span>SENSIBILIDADE</span>
+      <input type="range" id="mouse-sens-slider" min="0.5" max="3" step="0.1" value="1.6">
+      <span id="mouse-sens-val" class="sensval">1.6×</span>
+    </div>
+    <div class="mrow">
+      <button class="mbtn" id="mclick">M · CLIQUE</button>
+      <button class="mbtn" id="dblclick">L · DUPLO CLIQUE</button>
+    </div>
   </section>
 
   <!-- ============ TECLADO ============ -->
@@ -592,10 +603,10 @@
   <!-- ============ GAMEPAD ============ -->
   <section class="view" id="view-gp">
     <div id="gp-status">Verificando gamepad… <em id="gp-mode">—</em></div>
-    <div id="gp-sens">
+    <div id="gp-sens" class="sensline">
       <span>SENSIBILIDADE</span>
       <input type="range" id="gp-sens-slider" min="0.5" max="2" step="0.1" value="1">
-      <span id="gp-sens-val">1.0×</span>
+      <span id="gp-sens-val" class="sensval">1.0×</span>
     </div>
     <div class="gp-layout">
       <!-- Gatilhos -->
@@ -860,7 +871,52 @@ let ws = null, needsPin = false, pin = null, retry = 0, retryTimer = null;
 const buzz = (ms=12) => { try{ navigator.vibrate && navigator.vibrate(ms); }catch(e){} };
 function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('show');
   clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'), 3200); }
-function send(o){ if(ws && ws.readyState===1) ws.send(JSON.stringify(o)); }
+function send(o){
+  if(ws && ws.readyState===1){
+    try{ ws.send(JSON.stringify(o)); }catch(e){}
+  }
+}
+
+/* Entrada de alta frequência (mouse/scroll).
+   Pointer events podem chegar mais rápido do que o WebSocket/Windows consome.
+   Em vez de criar uma fila de centenas de mensagens antigas, acumulamos o
+   deslocamento e enviamos no próximo frame. O cursor continua percorrendo a
+   mesma distância, mas acompanha o dedo em tempo real em vez de "correr atrás". */
+const INPUT_BUFFER_LIMIT = 32 * 1024;
+let queuedDX=0, queuedDY=0, queuedScroll=0, inputFrame=0;
+function clearQueuedInput(){
+  queuedDX=queuedDY=queuedScroll=0;
+  if(inputFrame){ cancelAnimationFrame(inputFrame); inputFrame=0; }
+}
+function scheduleInputFlush(){
+  if(!inputFrame) inputFrame=requestAnimationFrame(flushQueuedInput);
+}
+function queueMove(dx,dy){
+  queuedDX += Number(dx)||0; queuedDY += Number(dy)||0;
+  scheduleInputFlush();
+}
+function queueScroll(dy){
+  queuedScroll += Number(dy)||0;
+  scheduleInputFlush();
+}
+function flushQueuedInput(){
+  inputFrame=0;
+  if(!ws || ws.readyState!==1){ clearQueuedInput(); return; }
+  if(ws.bufferedAmount > INPUT_BUFFER_LIMIT){ scheduleInputFlush(); return; }
+
+  const dx=Math.trunc(queuedDX), dy=Math.trunc(queuedDY);
+  if(dx || dy){
+    queuedDX-=dx; queuedDY-=dy;
+    send({t:'move', dx, dy});
+  }
+  const sy=Math.trunc(queuedScroll);
+  if(sy){
+    queuedScroll-=sy;
+    send({t:'scroll', dy:sy});
+  }
+  if(Math.abs(queuedDX)>=1 || Math.abs(queuedDY)>=1 || Math.abs(queuedScroll)>=1)
+    scheduleInputFlush();
+}
 
 /* ---------- conexão ---------- */
 async function connect(){
@@ -884,6 +940,7 @@ function open(){
   socket.onmessage = ev => { if(socket!==ws) return; handle(JSON.parse(ev.data)); };
   socket.onclose = () => {
     if(socket!==ws) return; // conexão antiga já substituída: não reagenda retry
+    clearQueuedInput();
     $('#dot').className='off'; $('#offbar').classList.add('show');
     const wait = Math.min(1000 * Math.pow(1.7, retry++), 12000);
     retryTimer = setTimeout(connect, wait);
@@ -901,7 +958,13 @@ $('#pinok').onclick = () => {
 };
 $('#pininput').addEventListener('keydown', e=>{ if(e.key==='Enter') $('#pinok').click(); });
 document.addEventListener('visibilitychange', ()=>{
-  if(!document.hidden && (!ws || ws.readyState>1)) connect();
+  if(document.hidden){
+    send({t:'reset_input'});
+    clearQueuedInput();
+    $$('#kp-game button.held').forEach(b=>b.classList.remove('held'));
+    return;
+  }
+  if(!ws || ws.readyState>1) connect();
 });
 window.__reconnect = ()=>{ if(!ws || ws.readyState>1) connect(); };
 setInterval(()=>send({t:'ping'}), 20000);
@@ -1008,7 +1071,7 @@ $$('.ktabs button').forEach(b=> b.onclick = ()=>{
 
 /* ---------- touchpad ---------- */
 const pad = $('#pad'), glow = $('#glow');
-const SENS = 1.6;
+let mouseSens = parseFloat(localStorage.getItem('ar_mouse_sens') || '1.6') || 1.6;
 let touches = new Map(), moved = 0, gestureMax = 0, dragging = false, lastTapAt = 0;
 let accX = 0, accY = 0;
 pad.addEventListener('pointerdown', e => {
@@ -1033,11 +1096,11 @@ pad.addEventListener('pointermove', e => {
     glow.style.left = (e.clientX-r.left)+'px'; glow.style.top = (e.clientY-r.top)+'px';
   }
   if(touches.size===1){
-    accX += dx*SENS; accY += dy*SENS;
+    accX += dx*mouseSens; accY += dy*mouseSens;
     const ix = Math.trunc(accX), iy = Math.trunc(accY);
-    if(ix || iy){ send({t:'move', dx:ix, dy:iy}); accX -= ix; accY -= iy; }
+    if(ix || iy){ queueMove(ix, iy); accX -= ix; accY -= iy; }
   } else if(touches.size===2 && e.isPrimary){
-    if(Math.abs(dy) >= 4) send({t:'scroll', dy: dy>0 ? -1 : 1});
+    if(Math.abs(dy) >= 4) queueScroll(dy>0 ? -1 : 1);
   }
 });
 pad.addEventListener('pointerup', e => {
@@ -1058,11 +1121,23 @@ sc.addEventListener('pointerdown', e => { sc.setPointerCapture(e.pointerId); scY
 sc.addEventListener('pointermove', e => {
   if(scY===null) return;
   scAcc += e.clientY - scY; scY = e.clientY;
-  while(Math.abs(scAcc) >= 14){ send({t:'scroll', dy: scAcc>0 ? -1 : 1}); scAcc += scAcc>0 ? -14 : 14; }
+  while(Math.abs(scAcc) >= 14){ queueScroll(scAcc>0 ? -1 : 1); scAcc += scAcc>0 ? -14 : 14; }
 });
 sc.addEventListener('pointerup', ()=> scY=null);
 $('#lclick').onclick = ()=>{ send({t:'click', btn:'left'}); buzz(); };
 $('#rclick').onclick = ()=>{ send({t:'click', btn:'right'}); buzz(); };
+$('#mclick').onclick = ()=>{ send({t:'click', btn:'middle'}); buzz(); };
+$('#dblclick').onclick = ()=>{ send({t:'click', btn:'left', double:true}); buzz(15); };
+const mouseSensSlider=$('#mouse-sens-slider'), mouseSensVal=$('#mouse-sens-val');
+mouseSensSlider.value=mouseSens;
+mouseSensVal.textContent=mouseSens.toFixed(1)+'×';
+mouseSensSlider.addEventListener('input', e=>{
+  mouseSens=parseFloat(e.target.value)||1.6;
+  mouseSensVal.textContent=mouseSens.toFixed(1)+'×';
+});
+mouseSensSlider.addEventListener('change', ()=>{
+  localStorage.setItem('ar_mouse_sens', String(mouseSens)); buzz();
+});
 const findPtr = ()=>{ send({t:'pointer', action:'find'}); toast('Olhe para a tela do Ally 👀'); buzz(20); };
 $('#findbtn').onclick = findPtr;
 $('#findbtn2').onclick = findPtr;
@@ -1073,30 +1148,30 @@ $$('#ptrsize button').forEach(b=>
   });
 
 /* ---------- teclado: modo LIVE ---------- */
-let liveMode = false;
-const liveBtn = $('#live-toggle');
+let liveMode = false, lastSent = '', composing = false;
+const txtInput=$('#txt'), liveBtn = $('#live-toggle');
+function syncLiveText(cur){
+  if(cur===lastSent) return;
+  // Android/Gboard pode autocorrigir um trecho já digitado. Reescrevemos apenas
+  // o sufixo que mudou, em vez de olhar somente o tamanho da string.
+  let same=0, max=Math.min(cur.length,lastSent.length);
+  while(same<max && cur[same]===lastSent[same]) same++;
+  for(let i=same;i<lastSent.length;i++) send({t:'key', k:'backspace'});
+  if(cur.length>same) send({t:'text', s:cur.slice(same)});
+  lastSent=cur;
+}
 liveBtn.onclick = ()=>{
   liveMode = !liveMode;
   liveBtn.classList.toggle('on', liveMode);
   $('#send').style.opacity = liveMode ? '0.4' : '1';
+  if(liveMode && txtInput.value) syncLiveText(txtInput.value);
   toast(liveMode ? 'Modo LIVE: envia enquanto digita ✓' : 'Modo normal: clique ENVIAR');
   buzz(12);
 };
-
-let lastSent = '';
-$('#txt').addEventListener('input', e=>{
-  if(!liveMode) return;
-  const cur = e.target.value;
-  // Envia só o caractere novo (diferença)
-  if(cur.length > lastSent.length){
-    const newChars = cur.slice(lastSent.length);
-    send({t:'text', s:newChars});
-  } else if(cur.length < lastSent.length){
-    // backspace
-    const diff = lastSent.length - cur.length;
-    for(let i=0;i<diff;i++) send({t:'key', k:'backspace'});
-  }
-  lastSent = cur;
+txtInput.addEventListener('compositionstart', ()=> composing=true);
+txtInput.addEventListener('compositionend', e=>{ composing=false; if(liveMode) syncLiveText(e.target.value); });
+txtInput.addEventListener('input', e=>{
+  if(liveMode && !composing) syncLiveText(e.target.value);
 });
 $('#send').onclick = ()=>{
   const v = $('#txt').value; if(!v) return;
@@ -1110,10 +1185,31 @@ $('#txt').addEventListener('keydown', e=>{
   }
 });
 
-/* Botões de tecla: teclado normal + abas */
+/* Botões de tecla: toque curto nas abas normais; key-down/key-up no modo
+   JOGOS para permitir segurar WASD/Shift/Ctrl e usar vários dedos. */
 function bindKeyButtons(){
-  $$('[data-k]').forEach(b=>
-    b.onclick = ()=>{ send({t:'key', k:b.dataset.k}); buzz(); });
+  $$('[data-k]').forEach(b=>{
+    if(!b.closest('#kp-game')){
+      b.onclick = ()=>{ send({t:'key', k:b.dataset.k}); buzz(); };
+      return;
+    }
+    let held=false;
+    const release=()=>{
+      if(!held) return;
+      held=false; b.classList.remove('held');
+      send({t:'key_state', k:b.dataset.k, pressed:false});
+    };
+    b.addEventListener('pointerdown', e=>{
+      e.preventDefault();
+      try{ b.setPointerCapture(e.pointerId); }catch(_){}
+      if(held) return;
+      held=true; b.classList.add('held');
+      send({t:'key_state', k:b.dataset.k, pressed:true}); buzz(6);
+    });
+    b.addEventListener('pointerup', release);
+    b.addEventListener('pointercancel', release);
+    b.addEventListener('lostpointercapture', release);
+  });
 }
 bindKeyButtons();
 $('#altf4').onclick = ()=>{ send({t:'key', k:'altf4'}); buzz(25); };
@@ -1430,7 +1526,7 @@ mir.addEventListener('pointermove', e=>{
   if(!mLast) return;
   const dx=e.clientX-mLast.x, dy=e.clientY-mLast.y; mLast={x:e.clientX,y:e.clientY};
   mMoved += Math.abs(dx)+Math.abs(dy);
-  if(tmode==='pad') send({t:'move', dx:Math.round(dx*1.5), dy:Math.round(dy*1.5)});
+  if(tmode==='pad') queueMove(Math.round(dx*mouseSens), Math.round(dy*mouseSens));
 });
 mir.addEventListener('pointerup', e=>{
   const wasTap = mMoved < 12; mLast=null;

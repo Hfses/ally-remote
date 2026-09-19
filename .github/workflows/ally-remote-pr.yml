@@ -1,0 +1,47 @@
+name: Ally Remote — validar PR
+
+on:
+  pull_request:
+    paths:
+      - "ally-remote/**"
+      - ".github/workflows/ally-remote-pr.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  testes:
+    name: Pytest + sintaxe
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ally-remote
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@v4
+
+      - name: Instalar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependências
+        run: pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Compilar Python
+        run: python -m compileall -q .
+
+      - name: Rodar testes
+        run: pytest tests -q
+
+      - name: Validar JavaScript embutido
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          html = Path("static/index.html").read_text(encoding="utf-8")
+          start = html.index("<script>") + len("<script>")
+          end = html.rindex("</script>")
+          Path("/tmp/ally-remote-ui.js").write_text(html[start:end], encoding="utf-8")
+          PY
+          node --check /tmp/ally-remote-ui.js

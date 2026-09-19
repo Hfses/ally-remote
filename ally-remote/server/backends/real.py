@@ -20,13 +20,13 @@ if IS_WINDOWS:
     from hardware.ally_acpi import AllyACPI
     from system import power, ram
     from virtual_input import cursor, win_input
-    from virtual_input.keyboard import press_key
+    from virtual_input.keyboard import press_key, set_key, type_text
 else:
     KeyboardController = None
     ally_led = display = games = screen = None
     power = ram = None
     cursor = win_input = None
-    press_key = None
+    press_key = set_key = type_text = None
 
 from monitoring.collector import CpuTimes, cpu_temp_c
 from server import __version__
@@ -57,6 +57,8 @@ class RealBackend(Backend):
         self._cpu = CpuTimes()
         self._caps: dict | None = None
         self._bri_cache = (None, 0.0)
+        self._held_keys: set[str] = set()
+        self._dragging = False
 
     # ------------------------------------------------------------------
     # Inicialização / detecção de hardware (regra 14: detectar, não assumir)
@@ -109,16 +111,47 @@ class RealBackend(Backend):
         win_input.scroll(dy)
 
     def drag(self, on):
-        if on:
+        on = bool(on)
+        if on and not self._dragging:
             win_input.press("left")
-        else:
+            self._dragging = True
+        elif not on and self._dragging:
             win_input.release("left")
+            self._dragging = False
 
     def text(self, s):
-        self._keyboard.type(s)
+        type_text(self._keyboard, s)
 
     def key(self, k):
         press_key(self._keyboard, k)
+
+    def key_state(self, k, pressed):
+        name = str(k).lower()
+        pressed = bool(pressed)
+        if pressed:
+            if name not in self._held_keys and set_key(self._keyboard, name, True):
+                self._held_keys.add(name)
+        else:
+            if name in self._held_keys:
+                try:
+                    set_key(self._keyboard, name, False)
+                finally:
+                    self._held_keys.discard(name)
+
+    def reset_input(self):
+        # Uma queda de Wi-Fi durante WASD/drag não pode deixar a tecla presa.
+        for name in list(self._held_keys):
+            try:
+                set_key(self._keyboard, name, False)
+            except Exception:
+                pass
+        self._held_keys.clear()
+        if self._dragging:
+            try:
+                win_input.release("left")
+            except Exception:
+                pass
+            self._dragging = False
 
     # ------------------------------------------------------------------
     # Ações (com resposta)

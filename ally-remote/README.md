@@ -4,8 +4,8 @@ Controle o **ROG Ally (Z1 / Z1 Extreme)** pelo celular, na sua rede Wi-Fi:
 
 | Função | O que faz |
 |---|---|
-| 🖱️ **Mouse** | Touchpad no celular com gestos (mover, clicar, arrastar, rolar) |
-| ⌨️ **Teclado** | Digite textos e use teclas especiais (ESC, TAB, WIN, setas, ALT+F4…) |
+| 🖱️ **Mouse** | Touchpad de baixa latência, sensibilidade ajustável, clique L/R/meio, duplo clique, arrastar e rolar |
+| ⌨️ **Teclado** | Texto/LIVE, F1–F12, navegação, atalhos Windows/Ctrl e teclas seguráveis no modo JOGOS |
 | 🔊 **Mídia / Volume** | Play/pause, faixa anterior/próxima, volume +/−, mudo |
 | 🧹 **Liberar RAM** | Apara working sets + limpa a standby list (como RAMMap/ISLC) |
 | ⚡ **Modo de desempenho** | Silent / Performance / Turbo — direto no firmware ASUS (controla a fan) |
@@ -87,17 +87,25 @@ cair (tela do celular apagou etc.), o app **reconecta sozinho**.
 ### 🖱️ MOUSE
 | Gesto | Ação |
 |---|---|
-| Arrastar 1 dedo | mover o cursor |
+| Arrastar 1 dedo | mover o cursor (eventos agrupados por frame para reduzir fila/lag) |
+| Ajustar SENSIBILIDADE | 0,5× a 3,0×; fica salvo no celular |
 | Toque 1 dedo | clique esquerdo |
 | Toque com 2 dedos | clique direito |
 | Arrastar com 2 dedos / barra SCROLL | rolagem |
 | Toque duplo e arrastar | segurar e arrastar (drag) |
+| **M · CLIQUE** | clique do meio |
+| **L · DUPLO CLIQUE** | duplo clique esquerdo |
 
 ### ⌨️ TECLADO
 - Digite no campo e toque **ENVIAR** (ou Enter) — o texto sai no Ally.
-- Teclas especiais: ESC, TAB, WIN, DEL, setas, ENTER, BACKSPACE.
+- **LIVE** envia enquanto você digita e lida melhor com composição/autocorreção do teclado Android.
+- Teclas especiais completas: ESC, TAB, WIN, DEL, HOME/END, PG UP/DOWN, INSERT, setas e ENTER.
+- Aba **F1–F12**: teclas de função, Shift/Ctrl/Alt, locks, Print Screen e símbolos.
+- Aba **WINDOWS**: Win+D/E/L/R/I/Tab, captura, Alt+Tab, Task Manager e Ctrl+C/V/X/Z/A/S.
+- Aba **JOGOS**: as teclas usam **key down/key up**; dá para segurar WASD, Shift, Ctrl e Espaço e combinar vários dedos.
 - Linha de **mídia**: anterior · play/pause · próxima · volume − · mudo · volume +.
 - **ALT+F4** fecha a janela/jogo ativo no Ally.
+- Se a conexão cair durante um drag ou tecla segurada, o servidor solta a entrada automaticamente para evitar tecla/mouse preso.
 
 ### ⚙️ SISTEMA
 - **MEMÓRIA RAM** — barra mostra o uso atual; **LIBERAR RAM** mostra quantos
