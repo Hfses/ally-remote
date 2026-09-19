@@ -36,6 +36,14 @@ class Backend(ABC):
     def key(self, k: str) -> None:
         raise NotImplementedError
 
+    def key_state(self, k: str, pressed: bool) -> None:
+        """Mantém uma tecla pressionada/solta (modo jogo)."""
+        raise NotImplementedError
+
+    def reset_input(self) -> None:
+        """Solta teclas/botões mantidos para evitar input preso."""
+        raise NotImplementedError
+
     # ---- Ações (com resposta) ----
     def ram(self) -> dict:
         raise NotImplementedError
