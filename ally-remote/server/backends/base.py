@@ -44,6 +44,12 @@ class Backend(ABC):
         """Solta teclas/botões mantidos para evitar input preso."""
         raise NotImplementedError
 
+    def clipboard_get(self) -> dict:
+        raise NotImplementedError
+
+    def clipboard_set(self, text: str) -> dict:
+        raise NotImplementedError
+
     # ---- Ações (com resposta) ----
     def ram(self) -> dict:
         raise NotImplementedError

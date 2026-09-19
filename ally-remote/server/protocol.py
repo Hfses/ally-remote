@@ -60,7 +60,12 @@ def registered() -> list[str]:
 # ---------------------------------------------------------------------------
 
 async def _handle_ping(ctx: Any, msg: dict) -> None:
-    await ctx.ws.send_json({"t": "pong"})
+    # Ecoa o identificador opcional para o cliente calcular RTT sem relógios
+    # sincronizados. Clientes antigos continuam recebendo apenas t="pong".
+    reply = {"t": "pong"}
+    if "id" in msg:
+        reply["id"] = msg["id"]
+    await ctx.ws.send_json(reply)
 
 
 async def _handle_stats(ctx: Any, msg: dict) -> None:
@@ -172,6 +177,9 @@ def setup_commands() -> None:
     register_command("key_state", "key_state",
                      parse=lambda m: (str(m.get("k", "")), bool(m.get("pressed", False))))
     register_command("reset_input", "reset_input", parse=lambda m: ())
+    register_command("clipboard_get", "clipboard_get", threaded=True, parse=lambda m: ())
+    register_command("clipboard_set", "clipboard_set", threaded=True,
+                     parse=lambda m: (str(m.get("text", "")),))
 
     # ---- Comandos com resposta (executados em thread, como no servidor antigo) ----
     register_command("ram", "ram", threaded=True, parse=lambda m: ())

@@ -19,13 +19,13 @@ if IS_WINDOWS:
     from hardware import ally_led, display, games, screen
     from hardware.ally_acpi import AllyACPI
     from system import power, ram
-    from virtual_input import cursor, win_input
+    from virtual_input import clipboard, cursor, win_input
     from virtual_input.keyboard import press_key, set_key, type_text
 else:
     KeyboardController = None
     ally_led = display = games = screen = None
     power = ram = None
-    cursor = win_input = None
+    clipboard = cursor = win_input = None
     press_key = set_key = type_text = None
 
 from monitoring.collector import CpuTimes, cpu_temp_c
@@ -153,6 +153,12 @@ class RealBackend(Backend):
                 pass
             self._dragging = False
 
+    def clipboard_get(self):
+        return clipboard.get_text()
+
+    def clipboard_set(self, text):
+        return clipboard.set_text(text)
+
     # ------------------------------------------------------------------
     # Ações (com resposta)
     # ------------------------------------------------------------------
@@ -267,6 +273,7 @@ class RealBackend(Backend):
                 "mirror": screen.available(),
                 "h264": False,              # FASE 3: encoder AMD VCN (h264_amf)
                 "telemetry": True,
+                "clipboard": True,
                 "discovery_udp": True,
             }
         return dict(self._caps)

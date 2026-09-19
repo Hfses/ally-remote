@@ -9,7 +9,7 @@ from server import protocol
 # Conjunto EXATO de comandos do protocolo (originais + aditivos da FASE 1).
 EXPECTED_COMMANDS = {
     "move", "moveabs", "scroll", "click", "drag", "text", "key",
-    "key_state", "reset_input",
+    "key_state", "reset_input", "clipboard_get", "clipboard_set",
     "ram", "perf", "led", "power", "pointer", "brightness", "monitor",
     "fan", "games", "launch", "stats", "status", "ping",
     # FASE 1 (aditivos — clientes antigos os ignoram)
@@ -69,6 +69,12 @@ def test_response_commands(client):
     r = _cmd(client, "launch", id="steam:1091500")
     assert r["t"] == "launch" and r["ok"] is True
 
+    r = _cmd(client, "clipboard_set", text="Olá do celular")
+    assert r["t"] == "clipboard_set" and r["ok"] is True and r["chars"] > 0
+
+    r = _cmd(client, "clipboard_get")
+    assert r == {"t": "clipboard_get", "ok": True, "text": "Olá do celular"}
+
     r = _cmd(client, "stats")
     assert r["t"] == "stats"
     for k in ("cpu_pct", "cpu_temp_c", "fan_rpm", "mem_load", "mem_avail_mb",
@@ -86,6 +92,7 @@ def test_status_includes_capabilities(client):
     assert caps["gamepad"] is False
     assert caps["virtual_display"] is False
     assert caps["telemetry"] is True
+    assert caps["clipboard"] is True
     assert caps["discovery_udp"] is True
     assert caps["mirror"] is True  # mock gera quadro de teste
 
@@ -109,6 +116,12 @@ def test_no_response_commands_do_not_crash(client):
         ws.send_json({"t": "comando-desconhecido"})  # ignorado silenciosamente
         ws.send_json({"t": "ping"})
         assert ws.receive_json() == {"t": "pong"}
+
+
+def test_ping_echoes_id_for_rtt(client):
+    with client.websocket_connect("/ws") as ws:
+        ws.send_json({"t": "ping", "id": 42})
+        assert ws.receive_json() == {"t": "pong", "id": 42}
 
 
 def test_bad_payload_reports_error(client):
