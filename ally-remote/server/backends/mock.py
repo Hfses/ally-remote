@@ -18,6 +18,8 @@ class MockBackend(Backend):
         self._bri = {"v": 70}
         self._cpu = {"v": 34.0}
         self._caps: dict | None = None
+        self._held_keys: set[str] = set()
+        self._dragging = False
 
     # ---- Entrada (sem resposta) ----
 
@@ -34,6 +36,7 @@ class MockBackend(Backend):
         print(f"[mock] scroll {dy}")
 
     def drag(self, on):
+        self._dragging = bool(on)
         print(f"[mock] drag {'on' if on else 'off'}")
 
     def text(self, s):
@@ -41,6 +44,19 @@ class MockBackend(Backend):
 
     def key(self, k):
         print(f"[mock] key {k}")
+
+    def key_state(self, k, pressed):
+        name = str(k).lower()
+        if pressed:
+            self._held_keys.add(name)
+        else:
+            self._held_keys.discard(name)
+        print(f"[mock] key_state {name} {'down' if pressed else 'up'}")
+
+    def reset_input(self):
+        self._held_keys.clear()
+        self._dragging = False
+        print("[mock] reset_input")
 
     # ---- Ações (com resposta) ----
 
