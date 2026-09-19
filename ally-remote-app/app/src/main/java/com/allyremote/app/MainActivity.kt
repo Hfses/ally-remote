@@ -75,7 +75,6 @@ class MainActivity : Activity() {
     private lateinit var wakeBtn: Button
     private lateinit var macEdit: EditText
     private lateinit var status: TextView
-    private lateinit var backFab: TextView
     private val scope = MainScope()
     private val prefs by lazy { getSharedPreferences("allyremote", Context.MODE_PRIVATE) }
 
@@ -115,24 +114,6 @@ class MainActivity : Activity() {
         }
         root.addView(web, FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
-
-        // ---------- botão flutuante "trocar Ally / voltar à conexão" ----------
-        backFab = TextView(this).apply {
-            text = "⟲"
-            visibility = View.GONE
-            setTextColor(TXT)
-            textSize = 20f
-            gravity = Gravity.CENTER
-            alpha = 0.55f
-            background = GradientDrawable().apply {
-                setColor(PANEL); cornerRadius = dp(20).toFloat(); setStroke(dp(1), LINE)
-            }
-            setOnClickListener { showSetup(null) }
-        }
-        root.addView(backFab, FrameLayout.LayoutParams(dp(40), dp(40)).apply {
-            gravity = Gravity.TOP or Gravity.END
-            topMargin = dp(8); rightMargin = dp(8)
-        })
 
         // ---------- tela de conexão ----------
         setup = LinearLayout(this).apply {
@@ -260,7 +241,6 @@ class MainActivity : Activity() {
                 .apply()
             setup.visibility = View.GONE
             web.visibility = View.VISIBLE
-            backFab.visibility = View.VISIBLE
             web.loadUrl("http://$ip:$PORT/")
         }
     }
@@ -286,7 +266,6 @@ class MainActivity : Activity() {
 
     private fun showSetup(message: String?) {
         web.visibility = View.GONE
-        backFab.visibility = View.GONE
         setup.visibility = View.VISIBLE
         if (message != null) status.text = message
     }
@@ -439,17 +418,35 @@ class MainActivity : Activity() {
 
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
-        if (web.visibility == View.VISIBLE) showSetup(null)
-        else super.onBackPressed()
+        if (web.visibility == View.VISIBLE) {
+            // Primeiro deixa a interface web consumir o Voltar (ex.: sair do
+            // Gamepad/tela cheia). Só abre a conexão se ela não consumiu.
+            web.evaluateJavascript(
+                "window.__handleAndroidBack ? window.__handleAndroidBack() : false"
+            ) { result ->
+                if (result != "true") showSetup(null)
+            }
+        } else super.onBackPressed()
     }
 
-    /** Ponte JS -> Android: tela cheia + clipboard nativo. */
+    private fun disconnectToSetup() {
+        try {
+            web.stopLoading()
+            web.loadUrl("about:blank")
+        } catch (_: Exception) {}
+        showSetup(null)
+    }
+
+    /** Ponte JS -> Android: tela cheia, conexão e clipboard nativo. */
     inner class NativeBridge {
         @android.webkit.JavascriptInterface
         fun enterFullscreen() { runOnUiThread { setImmersiveLandscape(true) } }
 
         @android.webkit.JavascriptInterface
         fun exitFullscreen() { runOnUiThread { setImmersiveLandscape(false) } }
+
+        @android.webkit.JavascriptInterface
+        fun disconnectToSetup() { runOnUiThread { this@MainActivity.disconnectToSetup() } }
 
         @android.webkit.JavascriptInterface
         fun getClipboardText(): String {
