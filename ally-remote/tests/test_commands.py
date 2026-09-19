@@ -92,6 +92,7 @@ def test_status_includes_capabilities(client):
     assert caps["gamepad"] is False
     assert caps["virtual_display"] is False
     assert caps["telemetry"] is True
+    assert caps["clipboard"] is True
     assert caps["discovery_udp"] is True
     assert caps["mirror"] is True  # mock gera quadro de teste
 
@@ -115,6 +116,12 @@ def test_no_response_commands_do_not_crash(client):
         ws.send_json({"t": "comando-desconhecido"})  # ignorado silenciosamente
         ws.send_json({"t": "ping"})
         assert ws.receive_json() == {"t": "pong"}
+
+
+def test_ping_echoes_id_for_rtt(client):
+    with client.websocket_connect("/ws") as ws:
+        ws.send_json({"t": "ping", "id": 42})
+        assert ws.receive_json() == {"t": "pong", "id": 42}
 
 
 def test_bad_payload_reports_error(client):
