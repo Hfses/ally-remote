@@ -3,6 +3,8 @@ package com.allyremote.app
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
@@ -70,6 +72,8 @@ class MainActivity : Activity() {
     private lateinit var ipEdit: EditText
     private lateinit var connectBtn: Button
     private lateinit var scanBtn: Button
+    private lateinit var wakeBtn: Button
+    private lateinit var macEdit: EditText
     private lateinit var status: TextView
     private lateinit var backFab: TextView
     private val scope = MainScope()
@@ -173,12 +177,32 @@ class MainActivity : Activity() {
             setOnEditorActionListener { _, _, _ -> tryConnectFromField(); true }
         }
 
+        macEdit = EditText(this).apply {
+            hint = "MAC do Ally p/ Wake-on-LAN (ex.: AA:BB:CC:DD:EE:FF)"
+            setText(prefs.getString("mac", ""))
+            setTextColor(TXT)
+            setHintTextColor(DIM)
+            textSize = 13f
+            typeface = Typeface.MONOSPACE
+            background = roundedBox(PANEL, LINE)
+            setPadding(dp(16), dp(12), dp(16), dp(12))
+            inputType = android.text.InputType.TYPE_CLASS_TEXT
+            setSingleLine(true)
+        }
+
         connectBtn = Button(this).apply {
             text = "CONECTAR"
             setTextColor(Color.WHITE)
             typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
             background = roundedBox(RED, RED)
             setOnClickListener { tryConnectFromField() }
+        }
+        wakeBtn = Button(this).apply {
+            text = "⚡  ACORDAR ALLY (WAKE-ON-LAN)"
+            setTextColor(TXT)
+            typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
+            background = roundedBox(PANEL, LINE)
+            setOnClickListener { wakeAlly() }
         }
         scanBtn = Button(this).apply {
             text = "🔍  PROCURAR O ALLY NA REDE"
@@ -200,7 +224,9 @@ class MainActivity : Activity() {
         setup.addView(logo)
         setup.addView(sub)
         setup.addView(ipEdit, lp)
+        setup.addView(macEdit, LinearLayout.LayoutParams(lp).apply { topMargin = dp(10) })
         setup.addView(connectBtn, LinearLayout.LayoutParams(lp).apply { topMargin = dp(12) })
+        setup.addView(wakeBtn, LinearLayout.LayoutParams(lp).apply { topMargin = dp(10) })
         setup.addView(scanBtn, LinearLayout.LayoutParams(lp).apply { topMargin = dp(10) })
         setup.addView(status, lp)
 
@@ -228,7 +254,10 @@ class MainActivity : Activity() {
             val err = withContext(Dispatchers.IO) { probe(ip) }
             setBusy(false)
             if (err != null) { status.text = err; return@launch }
-            prefs.edit().putString("ip", ip).apply()
+            prefs.edit()
+                .putString("ip", ip)
+                .putString("mac", macEdit.text.toString().trim())
+                .apply()
             setup.visibility = View.GONE
             web.visibility = View.VISIBLE
             backFab.visibility = View.VISIBLE
@@ -265,7 +294,45 @@ class MainActivity : Activity() {
     private fun setBusy(busy: Boolean) {
         connectBtn.isEnabled = !busy
         scanBtn.isEnabled = !busy
+        wakeBtn.isEnabled = !busy
         scanBtn.alpha = if (busy) 0.5f else 1f
+        wakeBtn.alpha = if (busy) 0.5f else 1f
+    }
+
+    private fun wakeAlly() {
+        val raw = macEdit.text.toString().trim()
+        val hex = raw.replace(Regex("[^0-9A-Fa-f]"), "")
+        if (hex.length != 12) {
+            status.text = "Informe o MAC do Ally com 12 dígitos hexadecimais."
+            return
+        }
+        prefs.edit().putString("mac", raw).apply()
+        scope.launch {
+            status.text = "Enviando Wake-on-LAN…"
+            val err = withContext(Dispatchers.IO) {
+                try {
+                    val mac = ByteArray(6) { i ->
+                        hex.substring(i * 2, i * 2 + 2).toInt(16).toByte()
+                    }
+                    val packet = ByteArray(6 + 16 * 6)
+                    for (i in 0 until 6) packet[i] = 0xFF.toByte()
+                    for (i in 0 until 16)
+                        System.arraycopy(mac, 0, packet, 6 + i * 6, 6)
+
+                    DatagramSocket().use { socket ->
+                        socket.broadcast = true
+                        val addr = InetAddress.getByName("255.255.255.255")
+                        socket.send(DatagramPacket(packet, packet.size, addr, 9))
+                    }
+                    null
+                } catch (e: Exception) {
+                    e.message ?: e.javaClass.simpleName
+                }
+            }
+            status.text = if (err == null)
+                "Pacote Wake-on-LAN enviado ✓ Aguarde o Ally iniciar e toque CONECTAR."
+            else "Falha no Wake-on-LAN: $err"
+        }
     }
 
     /**
@@ -376,13 +443,31 @@ class MainActivity : Activity() {
         else super.onBackPressed()
     }
 
-    /** Ponte JS -> Android para tela cheia em paisagem (chamada pela interface web). */
+    /** Ponte JS -> Android: tela cheia + clipboard nativo. */
     inner class NativeBridge {
         @android.webkit.JavascriptInterface
         fun enterFullscreen() { runOnUiThread { setImmersiveLandscape(true) } }
 
         @android.webkit.JavascriptInterface
         fun exitFullscreen() { runOnUiThread { setImmersiveLandscape(false) } }
+
+        @android.webkit.JavascriptInterface
+        fun getClipboardText(): String {
+            return try {
+                val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                val item = cm.primaryClip?.getItemAt(0) ?: return ""
+                item.coerceToText(this@MainActivity)?.toString() ?: ""
+            } catch (e: Exception) { "" }
+        }
+
+        @android.webkit.JavascriptInterface
+        fun setClipboardText(text: String): Boolean {
+            return try {
+                val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                cm.setPrimaryClip(ClipData.newPlainText("Ally Remote", text))
+                true
+            } catch (e: Exception) { false }
+        }
     }
 
     /**
