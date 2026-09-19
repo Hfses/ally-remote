@@ -19,7 +19,13 @@ MOUSEEVENTF_LEFTDOWN = 0x0002
 MOUSEEVENTF_LEFTUP = 0x0004
 MOUSEEVENTF_RIGHTDOWN = 0x0008
 MOUSEEVENTF_RIGHTUP = 0x0010
+MOUSEEVENTF_MIDDLEDOWN = 0x0020
+MOUSEEVENTF_MIDDLEUP = 0x0040
+MOUSEEVENTF_XDOWN = 0x0080
+MOUSEEVENTF_XUP = 0x0100
 MOUSEEVENTF_WHEEL = 0x0800
+XBUTTON1 = 0x0001
+XBUTTON2 = 0x0002
 WHEEL_DELTA = 120
 
 
@@ -66,11 +72,31 @@ def move_abs(nx: float, ny: float):
 
 
 def press(btn: str = "left"):
-    _send(MOUSEEVENTF_RIGHTDOWN if btn == "right" else MOUSEEVENTF_LEFTDOWN)
+    btn = str(btn).lower()
+    if btn == "right":
+        _send(MOUSEEVENTF_RIGHTDOWN)
+    elif btn == "middle":
+        _send(MOUSEEVENTF_MIDDLEDOWN)
+    elif btn == "back":
+        _send(MOUSEEVENTF_XDOWN, data=XBUTTON1)
+    elif btn == "forward":
+        _send(MOUSEEVENTF_XDOWN, data=XBUTTON2)
+    else:
+        _send(MOUSEEVENTF_LEFTDOWN)
 
 
 def release(btn: str = "left"):
-    _send(MOUSEEVENTF_RIGHTUP if btn == "right" else MOUSEEVENTF_LEFTUP)
+    btn = str(btn).lower()
+    if btn == "right":
+        _send(MOUSEEVENTF_RIGHTUP)
+    elif btn == "middle":
+        _send(MOUSEEVENTF_MIDDLEUP)
+    elif btn == "back":
+        _send(MOUSEEVENTF_XUP, data=XBUTTON1)
+    elif btn == "forward":
+        _send(MOUSEEVENTF_XUP, data=XBUTTON2)
+    else:
+        _send(MOUSEEVENTF_LEFTUP)
 
 
 def click(btn: str = "left", double: bool = False):
