@@ -57,5 +57,11 @@ def make_ws_endpoint(state):
                 pass
         finally:
             state.telemetry.unsubscribe(ws)
+            # Se a conexão cair no meio de um drag/WASD, não deixe entradas
+            # virtuais presas no Windows.
+            try:
+                state.backend.reset_input()
+            except Exception:
+                pass
 
     return ws_endpoint
