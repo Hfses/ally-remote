@@ -961,7 +961,7 @@ document.addEventListener('visibilitychange', ()=>{
   if(document.hidden){
     send({t:'reset_input'});
     clearQueuedInput();
-    $('#kp-game button.held').forEach(b=>b.classList.remove('held'));
+    $$('#kp-game button.held').forEach(b=>b.classList.remove('held'));
     return;
   }
   if(!ws || ws.readyState>1) connect();
@@ -1188,7 +1188,7 @@ $('#txt').addEventListener('keydown', e=>{
 /* Botões de tecla: toque curto nas abas normais; key-down/key-up no modo
    JOGOS para permitir segurar WASD/Shift/Ctrl e usar vários dedos. */
 function bindKeyButtons(){
-  $('[data-k]').forEach(b=>{
+  $$('[data-k]').forEach(b=>{
     if(!b.closest('#kp-game')){
       b.onclick = ()=>{ send({t:'key', k:b.dataset.k}); buzz(); };
       return;
