@@ -9,7 +9,7 @@ from server import protocol
 # Conjunto EXATO de comandos do protocolo (originais + aditivos da FASE 1).
 EXPECTED_COMMANDS = {
     "move", "moveabs", "scroll", "click", "drag", "text", "key",
-    "key_state", "reset_input",
+    "key_state", "reset_input", "clipboard_get", "clipboard_set",
     "ram", "perf", "led", "power", "pointer", "brightness", "monitor",
     "fan", "games", "launch", "stats", "status", "ping",
     # FASE 1 (aditivos — clientes antigos os ignoram)
@@ -68,6 +68,12 @@ def test_response_commands(client):
 
     r = _cmd(client, "launch", id="steam:1091500")
     assert r["t"] == "launch" and r["ok"] is True
+
+    r = _cmd(client, "clipboard_set", text="Olá do celular")
+    assert r["t"] == "clipboard_set" and r["ok"] is True and r["chars"] > 0
+
+    r = _cmd(client, "clipboard_get")
+    assert r == {"t": "clipboard_get", "ok": True, "text": "Olá do celular"}
 
     r = _cmd(client, "stats")
     assert r["t"] == "stats"
