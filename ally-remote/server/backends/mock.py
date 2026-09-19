@@ -20,6 +20,7 @@ class MockBackend(Backend):
         self._caps: dict | None = None
         self._held_keys: set[str] = set()
         self._dragging = False
+        self._clipboard = ""
 
     # ---- Entrada (sem resposta) ----
 
@@ -57,6 +58,13 @@ class MockBackend(Backend):
         self._held_keys.clear()
         self._dragging = False
         print("[mock] reset_input")
+
+    def clipboard_get(self):
+        return {"ok": True, "text": self._clipboard}
+
+    def clipboard_set(self, text):
+        self._clipboard = str(text)
+        return {"ok": True, "chars": len(self._clipboard)}
 
     # ---- Ações (com resposta) ----
 
