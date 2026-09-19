@@ -105,6 +105,12 @@
   #send{width:72px;height:50px;background:var(--grad);border:0;border-radius:12px;color:#fff;
     font:800 11px var(--mono);letter-spacing:.06em;box-shadow:0 4px 14px rgba(255,68,56,.3)}
   #send:active{transform:scale(.97)}
+  .quickkeys{display:flex;gap:7px;overflow-x:auto;padding:2px 1px 4px;scrollbar-width:none}
+  .quickkeys::-webkit-scrollbar{display:none}
+  .quickkeys button{flex:none;height:38px;min-width:54px;padding:0 10px;border-radius:9px;
+    border:1px solid var(--line);background:linear-gradient(180deg,var(--panel2),var(--panel));
+    color:var(--txt);font:700 10px var(--mono);white-space:nowrap}
+  .quickkeys button:active{border-color:var(--red);color:var(--red2);transform:scale(.96)}
   .clipbox{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px;
     display:flex;flex-direction:column;gap:8px}
   .clipbox textarea{width:100%;min-height:64px;max-height:120px;resize:vertical;
@@ -158,6 +164,9 @@
   #view-gp{gap:8px}
   #gp-status{font:10px var(--mono);color:var(--dim);text-align:center;padding:4px;
     display:flex;align-items:center;justify-content:center;gap:6px}
+  #gp-exit-inline{margin-left:auto;height:32px;padding:0 11px;border-radius:9px;
+    border:1px solid rgba(255,68,56,.45);background:rgba(255,68,56,.09);
+    color:var(--red2);font:800 9px var(--mono);letter-spacing:.08em}
   #gp-mode{font:800 10px var(--mono);letter-spacing:.06em;padding:3px 9px;border-radius:99px;
     background:rgba(61,220,132,.12);border:1px solid rgba(61,220,132,.35);color:var(--ok)}
   #gp-mode.warn{background:rgba(255,176,32,.12);border-color:rgba(255,176,32,.35);color:var(--warn)}
@@ -341,6 +350,8 @@
   #fsexit{position:absolute;top:10px;right:10px;pointer-events:auto;
     width:42px;height:42px;border-radius:12px;border:1px solid var(--line);
     background:rgba(19,21,27,.7);color:var(--txt);font:800 16px var(--mono)}
+  body.fs-gp #fsexit{width:auto;min-width:118px;padding:0 12px;
+    border-color:rgba(255,68,56,.45);color:var(--red2);font-size:10px;letter-spacing:.08em}
   #ovl{position:absolute;top:10px;left:10px;pointer-events:none;display:flex;gap:6px;
     flex-wrap:wrap;max-width:70vw;font:700 11px var(--mono)}
   #ovl.hide{display:none}
@@ -477,6 +488,16 @@
       </button>
       <button id="send">ENVIAR</button>
     </div>
+    <div>
+      <div class="klabel">ATALHOS RÁPIDOS</div>
+      <div class="quickkeys">
+        <button data-k="f1">F1</button><button data-k="f2">F2</button>
+        <button data-k="f3">F3</button><button data-k="f4">F4</button>
+        <button data-k="ctrl_c">CTRL+C</button><button data-k="ctrl_v">CTRL+V</button>
+        <button data-k="ctrl_z">CTRL+Z</button><button data-k="ctrl_s">CTRL+S</button>
+        <button data-k="alt_tab">ALT+TAB</button>
+      </div>
+    </div>
     <div class="clipbox">
       <textarea id="cliptext" placeholder="Área de transferência compartilhada entre celular e Ally…"></textarea>
       <div class="clipactions">
@@ -489,7 +510,7 @@
     <div class="ktabs">
       <button class="act" data-kp="basic">BÁSICO</button>
       <button data-kp="fn">F1-F12</button>
-      <button data-kp="win">WINDOWS</button>
+      <button data-kp="win">ATALHOS</button>
       <button data-kp="game">JOGOS</button>
     </div>
 
@@ -584,6 +605,15 @@
         <button data-k="ctrl_x">✂️ Recortar<span class="kcombo">CTRL+X</span></button>
         <button data-k="ctrl_a">☑️ Selec. Tudo<span class="kcombo">CTRL+A</span></button>
         <button data-k="ctrl_s">💾 Salvar<span class="kcombo">CTRL+S</span></button>
+        <button data-k="ctrl_f">🔎 Localizar<span class="kcombo">CTRL+F</span></button>
+        <button data-k="ctrl_p">🖨️ Imprimir<span class="kcombo">CTRL+P</span></button>
+        <button data-k="ctrl_n">🪟 Nova janela<span class="kcombo">CTRL+N</span></button>
+        <button data-k="ctrl_t">➕ Nova aba<span class="kcombo">CTRL+T</span></button>
+        <button data-k="ctrl_w">✖ Fechar aba<span class="kcombo">CTRL+W</span></button>
+        <button data-k="ctrl_r">↻ Atualizar<span class="kcombo">CTRL+R</span></button>
+        <button data-k="ctrl_shift_t">↩ Reabrir aba<span class="kcombo">CTRL+⇧+T</span></button>
+        <button data-k="alt_left">← Voltar<span class="kcombo">ALT+←</span></button>
+        <button data-k="alt_right">Avançar →<span class="kcombo">ALT+→</span></button>
         <button data-k="ctrl_shift_esc">📊 Task Manager<span class="kcombo">CTRL+⇧+ESC</span></button>
         <button data-k="ctrl_alt_del">🆘 Ctrl+Alt+Del<span class="kcombo">C+A+D</span></button>
       </div>
@@ -630,7 +660,7 @@
 
   <!-- ============ GAMEPAD ============ -->
   <section class="view" id="view-gp">
-    <div id="gp-status">Verificando gamepad… <em id="gp-mode">—</em></div>
+    <div id="gp-status"><span>Verificando gamepad… <em id="gp-mode">—</em></span><button id="gp-exit-inline">SAIR</button></div>
     <div id="gp-sens" class="sensline">
       <span>SENSIBILIDADE</span>
       <input type="range" id="gp-sens-slider" min="0.5" max="2" step="0.1" value="1">
@@ -789,6 +819,11 @@
         <button class="danger" data-p="shutdown"><svg viewBox="0 0 24 24"><path d="M13 3h-2v10h2zm4.8 2.2l-1.4 1.4A6.9 6.9 0 0 1 19 12a7 7 0 1 1-11.4-5.4L6.2 5.2A9 9 0 1 0 21 12a8.9 8.9 0 0 0-3.2-6.8z"/></svg>DESLIGAR</button>
         <button data-p="cancel"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm5 13.6L15.6 17 12 13.4 8.4 17 7 15.6 10.6 12 7 8.4 8.4 7 12 10.6 15.6 7 17 8.4 13.4 12z"/></svg>CANCELAR</button>
       </div>
+    </div>
+    <div class="card">
+      <h3>⚙ CONFIGURAÇÕES DO APP</h3>
+      <div id="raminfo">A opção de trocar/desconectar o Ally fica aqui para não ocupar espaço sobre os controles.</div>
+      <button id="disconnect-btn" style="height:46px;border-radius:11px;border:1px solid rgba(255,68,56,.45);background:rgba(255,68,56,.08);color:var(--red2);font:800 11px var(--mono)">DESCONECTAR / TROCAR ALLY</button>
     </div>
   </section>
 
@@ -1117,17 +1152,16 @@ function refreshStatus(){ send({t:'status'}); }
 setInterval(()=>{ if(ws&&ws.readyState===1) refreshStatus(); }, 8000);
 
 /* ---------- abas de navegação ---------- */
-$$('nav button').forEach(b=> b.onclick = ()=>{
-  buzz(8);
-  const v = b.dataset.v;
-  $$('nav button').forEach(x=>x.classList.toggle('act', x===b));
-  $$('.view').forEach(x=>x.classList.toggle('act', x.id==='view-'+v));
+function activateView(v){
+  $('nav button').forEach(x=>x.classList.toggle('act', x.dataset.v===v));
+  $('.view').forEach(x=>x.classList.toggle('act', x.id==='view-'+v));
   if(v!=='screen') stopStream();
   if(v==='sys') startStats();
   else if(!document.body.classList.contains('fs') && !document.body.classList.contains('fs-gp')) stopStats();
   if(v==='games' && !gamesLoaded){ send({t:'games'}); }
   if(v==='gp'){ send({t:'gp_info'}); enterGpFS(); }
-});
+}
+$('nav button').forEach(b=> b.onclick = ()=>{ buzz(8); activateView(b.dataset.v); });
 
 /* ---------- abas do teclado ---------- */
 $$('.ktabs button').forEach(b=> b.onclick = ()=>{
@@ -1698,13 +1732,14 @@ function exitFS(){
   buzz();
 }
 $('#fsbtn').onclick = enterFS;
-$('#fsexit').onclick = ()=>{ document.body.classList.contains('fs-gp') ? exitGpFS() : exitFS(); };
+$('#fsexit').onclick = ()=>{ document.body.classList.contains('fs-gp') ? leaveGamepad() : exitFS(); };
 $('#fs-l').onclick = ()=>{ send({t:'click', btn:'left'}); buzz(); };
 $('#fs-r').onclick = ()=>{ send({t:'click', btn:'right'}); buzz(); };
 
 /* ---------- paisagem automática do GAMEPAD ---------- */
 function enterGpFS(){
   document.body.classList.add('fs-gp'); startStats();
+  $('#fsexit').textContent='← SAIR GAMEPAD';
   if(window.AllyNative && AllyNative.enterFullscreen){ try{ AllyNative.enterFullscreen(); }catch(e){} }
   else { try{ const el=document.documentElement; const p=el.requestFullscreen?el.requestFullscreen():null;
     Promise.resolve(p).then(()=>{ try{ const l=screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape');
@@ -1712,11 +1747,33 @@ function enterGpFS(){
 }
 function exitGpFS(){
   document.body.classList.remove('fs-gp');
+  $('#fsexit').textContent='⤢';
   if(!$('#view-sys').classList.contains('act')) stopStats();
   if(window.AllyNative && AllyNative.exitFullscreen){ try{ AllyNative.exitFullscreen(); }catch(e){} }
   else { try{ screen.orientation.unlock(); }catch(e){} try{ if(document.fullscreenElement) document.exitFullscreen(); }catch(e){} }
   buzz();
 }
+function leaveGamepad(){
+  send({t:'gp_reset'});
+  exitGpFS();
+  activateView('mouse');
+  toast('Modo Gamepad encerrado');
+}
+$('#gp-exit-inline').onclick = leaveGamepad;
+window.__handleAndroidBack = ()=>{
+  if(document.body.classList.contains('fs-gp')){ leaveGamepad(); return true; }
+  if(document.body.classList.contains('fs')){ exitFS(); return true; }
+  return false;
+};
+
+/* ---------- configurações do app ---------- */
+$('#disconnect-btn').onclick = ()=>{
+  if(window.AllyNative && AllyNative.disconnectToSetup){
+    try{ AllyNative.disconnectToSetup(); }catch(e){ toast('Não foi possível abrir a conexão'); }
+  } else {
+    toast('Use o app Android para trocar o Ally');
+  }
+};
 
 /* ---------- jogos ---------- */
 let gamesLoaded=false, allGames=[];
