@@ -60,7 +60,12 @@ def registered() -> list[str]:
 # ---------------------------------------------------------------------------
 
 async def _handle_ping(ctx: Any, msg: dict) -> None:
-    await ctx.ws.send_json({"t": "pong"})
+    # Ecoa o identificador opcional para o cliente calcular RTT sem relógios
+    # sincronizados. Clientes antigos continuam recebendo apenas t="pong".
+    reply = {"t": "pong"}
+    if "id" in msg:
+        reply["id"] = msg["id"]
+    await ctx.ws.send_json(reply)
 
 
 async def _handle_stats(ctx: Any, msg: dict) -> None:
