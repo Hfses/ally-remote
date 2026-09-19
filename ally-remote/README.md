@@ -7,6 +7,10 @@ Controle o **ROG Ally (Z1 / Z1 Extreme)** pelo celular, na sua rede Wi-Fi:
 | 🖱️ **Mouse** | Touchpad de baixa latência, sensibilidade ajustável, clique L/R/meio, duplo clique, arrastar e rolar |
 | ⌨️ **Teclado** | Texto/LIVE, F1–F12, navegação, atalhos Windows/Ctrl e teclas seguráveis no modo JOGOS |
 | 🔊 **Mídia / Volume** | Play/pause, faixa anterior/próxima, volume +/−, mudo |
+| 📋 **Clipboard compartilhado** | Copia texto Android ↔ Windows e pode colar direto no Ally |
+| 📶 **PING em tempo real** | Mostra a latência entre celular e Ally no cabeçalho |
+| ⭐ **Jogos favoritos** | Favoritos ficam fixados no topo da lista de jogos |
+| ⚡ **Wake-on-LAN** | O APK pode enviar o magic packet para acordar o Ally pela rede |
 | 🧹 **Liberar RAM** | Apara working sets + limpa a standby list (como RAMMap/ISLC) |
 | ⚡ **Modo de desempenho** | Silent / Performance / Turbo — direto no firmware ASUS (controla a fan) |
 | 💡 **LEDs dos analógicos** | Cor, efeitos (estático, pulso, ciclo, arco-íris) e velocidade |
@@ -69,6 +73,7 @@ na primeira execução.
    (ou digite o IP mostrado na janela do AllyRemote no Ally).
 3. O IP fica salvo: nas próximas vezes o app conecta direto.
 4. Ao **minimizar e voltar**, o app **reconecta sozinho** (não trava mais).
+5. Opcional: informe o **MAC do Ally** na tela inicial. O botão **ACORDAR ALLY** envia Wake-on-LAN para a rede local. O recurso só funciona se Wake-on-LAN estiver habilitado/suportado pelo adaptador, Windows/BIOS e estado de energia usado.
    Para trocar de Ally, toque no **⟲** no canto superior direito ou no botão
    **voltar** do Android — volta à tela de conexão.
 
@@ -95,6 +100,7 @@ cair (tela do celular apagou etc.), o app **reconecta sozinho**.
 | Toque duplo e arrastar | segurar e arrastar (drag) |
 | **M · CLIQUE** | clique do meio |
 | **L · DUPLO CLIQUE** | duplo clique esquerdo |
+| **← VOLTAR / AVANÇAR →** | botões laterais do mouse, úteis em navegador/Explorador |
 
 ### ⌨️ TECLADO
 - Digite no campo e toque **ENVIAR** (ou Enter) — o texto sai no Ally.
@@ -106,6 +112,8 @@ cair (tela do celular apagou etc.), o app **reconecta sozinho**.
 - Linha de **mídia**: anterior · play/pause · próxima · volume − · mudo · volume +.
 - **ALT+F4** fecha a janela/jogo ativo no Ally.
 - Se a conexão cair durante um drag ou tecla segurada, o servidor solta a entrada automaticamente para evitar tecla/mouse preso.
+- **Clipboard**: LER CELULAR carrega o texto do Android; ALLY → CEL copia o clipboard do Windows para o telefone; COPIAR P/ ALLY apenas transfere; COLAR NO ALLY transfere e executa Ctrl+V.
+- No navegador comum, o clipboard pode ser limitado por permissões/HTTP. No APK ele usa a ponte nativa do Android e não depende da Clipboard API do navegador.
 
 ### ⚙️ SISTEMA
 - **MEMÓRIA RAM** — barra mostra o uso atual; **LIBERAR RAM** mostra quantos
