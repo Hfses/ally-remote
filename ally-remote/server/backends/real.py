@@ -273,6 +273,7 @@ class RealBackend(Backend):
                 "mirror": screen.available(),
                 "h264": False,              # FASE 3: encoder AMD VCN (h264_amf)
                 "telemetry": True,
+                "clipboard": True,
                 "discovery_udp": True,
             }
         return dict(self._caps)
