@@ -169,6 +169,9 @@ def setup_commands() -> None:
                      parse=lambda m: (str(m.get("s", "")),))
     register_command("key", "key",
                      parse=lambda m: (str(m.get("k", "")),))
+    register_command("key_state", "key_state",
+                     parse=lambda m: (str(m.get("k", "")), bool(m.get("pressed", False))))
+    register_command("reset_input", "reset_input", parse=lambda m: ())
 
     # ---- Comandos com resposta (executados em thread, como no servidor antigo) ----
     register_command("ram", "ram", threaded=True, parse=lambda m: ())
